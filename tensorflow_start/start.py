@@ -41,7 +41,6 @@ def get_dataset():
 
 def train():
     print("TensorFlow version:", tf.__version__)
-    print(tf.config.list_physical_devices('GPU'))
 
     # Get basic vars
     (x_train, y_train), (x_test, y_test) = get_dataset()
@@ -57,7 +56,7 @@ def train():
     probability_model = get_probability_model(model)
 
     # Get final tensor
-    probability_model(x_test[:5])
+    print(probability_model(x_test[:5]))
 
 
 if __name__ == '__main__':
