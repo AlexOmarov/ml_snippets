@@ -1,15 +1,12 @@
 # This is a Python script for tensorflow start.
 
 import tensorflow as tf
-print("TensorFlow version:", tf.__version__)
-
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
 
 
-# Press the green button in the gutter to run the script.
+def print_hi():
+    print("TensorFlow version:", tf.__version__)
+    print(tf.config.list_physical_devices('GPU'))
+
+
 if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    print_hi()
