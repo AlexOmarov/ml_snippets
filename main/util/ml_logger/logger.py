@@ -20,6 +20,6 @@ def _get_stream_handler():
 def get_logger(name):
     logger = logging.getLogger(name)
     logger.setLevel(logging.INFO)
-    logger.addHandler(_get_file_handler())
+    # logger.addHandler(_get_file_handler())
     logger.addHandler(_get_stream_handler())
     return logger
