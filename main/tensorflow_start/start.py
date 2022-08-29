@@ -1,9 +1,10 @@
 # This is a Python script for tensorflow start.
 from tensorflow import keras
+from util import logger as logger
 
 
 def train():
-    print("Keras version:", keras.__version__)
+    logger.info(str.format("Keras version: {0}", keras.__version__))
 
     # Get basic vars
     (x_train, y_train), (x_test, y_test) = _get_dataset()  # x - images, y - labels
@@ -33,7 +34,7 @@ def _fit(model, x_train, y_train):
 
 
 def _compile_model(model, loss_fn):
-    model.compile(optimizer='adam', loss=loss_fn,  metrics=['accuracy'])
+    model.compile(optimizer='adam', loss=loss_fn, metrics=['accuracy'])
 
 
 def _get_loss_function():
@@ -41,12 +42,15 @@ def _get_loss_function():
 
 
 def _get_model():
-    return keras.models.Sequential([
-        keras.layers.Flatten(input_shape=(28, 28)),
-        keras.layers.Dense(128, activation='relu'),
+    # Create simple sequential model (each layer after another). Model - collection of layers
+    model = keras.models.Sequential([
+        keras.layers.Flatten(input_shape=(28, 28)),  # Flat incoming tensor to 28x28 matrix
+        keras.layers.Dense(128, activation='relu'),  # Fully integrated
         keras.layers.Dropout(0.2),
         keras.layers.Dense(10)
     ])
+
+    return model
 
 
 def _get_dataset():
