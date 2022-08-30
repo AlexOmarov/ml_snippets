@@ -1,0 +1,2 @@
+from tensorboard_util import histogram_callback
+histogram_callback = histogram_callback.get_histogram_callback(1)
