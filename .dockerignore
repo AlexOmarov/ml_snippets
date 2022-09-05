@@ -1,0 +1,11 @@
+.dockerignore
+.git
+.cache
+venv/
+*.pyc
+dist/
+build/
+ml_service.egg-info/
+MANIFEST.in
+README.md
+setup.py

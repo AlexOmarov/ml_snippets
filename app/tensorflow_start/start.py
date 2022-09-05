@@ -37,7 +37,6 @@ def train(metric: str):
         If passed metric isn't supported.
     """
     log.info(str.format("Keras version: {0}", keras.__version__))
-
     # Get basic vars
     (x_train, y_train), (x_test, y_test) = _get_dataset()  # x - images, y - labels
     model = _get_model()
@@ -45,7 +44,7 @@ def train(metric: str):
 
     # Train model
     _compile_model(model, loss_fn, metric)
-    _fit(model, x_train, y_train, [histogram_callback])
+    _fit(model, x_train, y_train, [histogram_callback.get_histogram_callback(1)])
     model.evaluate(x_test, y_test, verbose=2)
 
     # Create probability model
@@ -53,6 +52,9 @@ def train(metric: str):
 
     # Get final tensor
     print(probability_model(x_test[:5]))
+    # Print model scheme
+    keras.utils.plot_model(model, "my_first_model_with_shape_info.png", show_shapes=True)
+    model.save("model")
 
 
 # Private functions
@@ -82,7 +84,7 @@ def _get_loss_function() -> keras.losses.SparseCategoricalCrossentropy:
 def _get_model() -> keras.models.Sequential:
     # Create simple sequential model (each layer after another). Model - collection of layers
     model = keras.models.Sequential([
-        keras.layers.Flatten(input_shape=(28, 28)),  # Flat incoming tensor to 28x28 matrix
+        keras.layers.Flatten(input_shape=(28, 28)),  # Flat incoming 28x28 matrix to single vector
         keras.layers.Dense(128, activation='relu'),  # Fully integrated within previous layer
         # Delete neurons from previous layer with probability 0.2 (make it less overfitting, more sparsed)
         keras.layers.Dropout(0.2),
