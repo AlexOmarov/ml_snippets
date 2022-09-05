@@ -1,4 +1,4 @@
-FROM nvidia/cuda:11.0-cudnn8-runtime-ubuntu18.04
+FROM nvidia/cuda:11.7.1-base-ubuntu20.04
 
 WORKDIR /od_docker
 ADD . /od_docker
@@ -16,21 +16,13 @@ ENV PATH /opt/conda/bin:$PATH
 # Install gcc as it is missing in our base layer
 RUN apt-get update && apt-get -y install gcc
 
-# Here all of the sources AND conda are already present
-# We need to create new conda env, activate it, launch setup.py via anaconda pip
-# Then we need to run this env
-# So we need to get env.yml for anaconda initialization, but without any packages (just name, channels, setuptools, etc)
-# Then, install all the packages via setup.py pip / python
-
-RUN conda env create -f environment.yml
+#  Remove deps from environment, download it from setuptools
+RUN conda env create -f environment.yaml
 
 # Make RUN commands use the new environment:
-SHELL ["conda", "run", "-n", "myenv", "/bin/bash", "-c"]
-
-# Make sure the environment is activated:
-RUN python -c "import flask"
+SHELL ["conda", "run", "-n", "ml_snippets", "/bin/bash", "-c"]
 
 EXPOSE 5000
 
 # The code to run when container is started:
-ENTRYPOINT ["conda", "run", "-n", "myenv", "python", "src/my_app.py"]
+ENTRYPOINT ["conda", "run", "-n", "ml_snippets", "python", "app.py"]
