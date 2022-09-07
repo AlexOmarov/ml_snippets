@@ -13,9 +13,9 @@ functions:
 
     * train - prints the resulting tensor
 """
-
+#  Lib imports
 from tensorflow import keras as keras
-
+#  App imports
 from business.util.ml_logger import logger
 from business.util.ml_tensorboard import histogram_callback
 
