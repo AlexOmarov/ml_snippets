@@ -94,6 +94,7 @@ def predict(image: str):
 def train(metric: str):
     """
     Prepares model for predictions.
+    Creates model, updates global model, writes model to disk and converts in to tensorflow lite
 
     If the argument `metric` isn't passed in, the default accuracy metric is used.
 
@@ -116,9 +117,9 @@ def train(metric: str):
     probability_model = _get_probability_model(model)
 
     # Train model
-    _compile_model(model, loss_fn, metric)
-    _fit(model, x_train, y_train, [histogram_callback.get_histogram_callback(1)])
-    result = model.evaluate(x_test, y_test, verbose=2)
+    _compile_model(probability_model, loss_fn, metric)
+    _fit(probability_model, x_train, y_train, [histogram_callback.get_histogram_callback(1)])
+    result = probability_model.evaluate(x_test, y_test, verbose=2)
 
     # Get final tensor
     print(probability_model(x_test[:5]))
@@ -128,6 +129,7 @@ def train(metric: str):
 
     # Convert to Tensorflow lite
     _convert_to_lite(probability_model)
+
     return result
 
 
