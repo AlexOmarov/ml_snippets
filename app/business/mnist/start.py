@@ -15,6 +15,7 @@ functions:
 """
 #  Lib imports
 from tensorflow import keras as keras
+
 #  App imports
 from business.util.ml_logger import logger
 from business.util.ml_tensorboard import histogram_callback
@@ -22,9 +23,14 @@ from business.util.ml_tensorboard import histogram_callback
 log = logger.get_logger(__name__.replace('__', '\''))
 
 
+def predict():
+    # TODO: Process prediction
+    return ""
+
+
 def train(metric: str):
     """
-    Prints resulting tensor of sequential NN for MNIST classification.
+    Prepares model for predictions.
 
     If the argument `metric` isn't passed in, the default accuracy metric is used.
 
@@ -38,7 +44,6 @@ def train(metric: str):
     NotImplementedError
         If passed metric isn't supported.
     """
-    log.info(str.format("Keras version: {0}", keras.__version__))
     # Get basic vars
     (x_train, y_train), (x_test, y_test) = _get_dataset()  # x - images, y - labels
     model = _get_model()
@@ -47,7 +52,7 @@ def train(metric: str):
     # Train model
     _compile_model(model, loss_fn, metric)
     _fit(model, x_train, y_train, [histogram_callback.get_histogram_callback(1)])
-    model.evaluate(x_test, y_test, verbose=2)
+    result = model.evaluate(x_test, y_test, verbose=2)
 
     # Create probability model
     probability_model = _get_probability_model(model)
@@ -55,8 +60,9 @@ def train(metric: str):
     # Get final tensor
     print(probability_model(x_test[:5]))
     # Print model scheme
-    keras.utils.plot_model(model, "my_first_model_with_shape_info.png", show_shapes=True)
-    model.save("model")
+    keras.utils.plot_model(model, "models/model.png", show_shapes=True)
+    model.save("models/model")
+    return result
 
 
 # Private functions

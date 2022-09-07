@@ -17,6 +17,7 @@ ENV PATH /opt/conda/bin:$PATH
 RUN apt-get update && apt-get -y install gcc
 
 #  Remove deps from environment, download it from setuptools
+RUN conda config --set unsatisfiable_hints false
 RUN conda env create -f environment.yaml
 
 # Make RUN commands use the new environment:
