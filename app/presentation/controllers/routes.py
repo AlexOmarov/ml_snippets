@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 
 from business.mnist.start import train, predict
 
@@ -8,7 +8,7 @@ ml = Blueprint('ml', __name__)
 @ml.route('/predict', methods=['POST'])
 def predict_img():
     # TODO: Get image from request and pass it as a parameter
-    result = predict()
+    result = predict(request.files.get('image', ''))
     return jsonify(result=result.serialize())
 
 

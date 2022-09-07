@@ -23,48 +23,6 @@ from business.util.ml_tensorboard import histogram_callback
 log = logger.get_logger(__name__.replace('__', '\''))
 
 
-def predict():
-    # TODO: Process prediction
-    return ""
-
-
-def train(metric: str):
-    """
-    Prepares model for predictions.
-
-    If the argument `metric` isn't passed in, the default accuracy metric is used.
-
-    Parameters
-    ----------
-    metric : str, optional
-             The metric for model compilation
-
-    Raises
-    ------
-    NotImplementedError
-        If passed metric isn't supported.
-    """
-    # Get basic vars
-    (x_train, y_train), (x_test, y_test) = _get_dataset()  # x - images, y - labels
-    model = _get_model()
-    loss_fn = _get_loss_function()
-
-    # Train model
-    _compile_model(model, loss_fn, metric)
-    _fit(model, x_train, y_train, [histogram_callback.get_histogram_callback(1)])
-    result = model.evaluate(x_test, y_test, verbose=2)
-
-    # Create probability model
-    probability_model = _get_probability_model(model)
-
-    # Get final tensor
-    print(probability_model(x_test[:5]))
-    # Print model scheme
-    keras.utils.plot_model(model, "models/model.png", show_shapes=True)
-    model.save("models/model")
-    return result
-
-
 # Private functions
 
 def _get_probability_model(model: keras.Sequential) -> keras.Sequential:
@@ -107,3 +65,51 @@ def _get_dataset() -> tuple:
     (x_train, y_train), (x_test, y_test) = keras.datasets.mnist.load_data()
     x_train, x_test = x_train / 255.0, x_test / 255.0  # Normalize image vectors (make values interval less)
     return (x_train, y_train), (x_test, y_test)
+
+
+def predict(image: str):
+    # TODO: Process prediction
+    result = _global_model.predict(image)
+    return ""
+
+
+def train(metric: str):
+    """
+    Prepares model for predictions.
+
+    If the argument `metric` isn't passed in, the default accuracy metric is used.
+
+    Parameters
+    ----------
+    metric : str, optional
+             The metric for model compilation
+
+    Raises
+    ------
+    NotImplementedError
+        If passed metric isn't supported.
+    """
+    global _global_model
+    # Get basic vars
+    (x_train, y_train), (x_test, y_test) = _get_dataset()  # x - images, y - labels
+    model = _get_model()
+    loss_fn = _get_loss_function()
+
+    # Train model
+    _compile_model(model, loss_fn, metric)
+    _fit(model, x_train, y_train, [histogram_callback.get_histogram_callback(1)])
+    result = model.evaluate(x_test, y_test, verbose=2)
+
+    # Create probability model
+    probability_model = _get_probability_model(model)
+
+    # Get final tensor
+    print(probability_model(x_test[:5]))
+    # Print model scheme
+    keras.utils.plot_model(model, "models/model.png", show_shapes=True)
+    model.save("models/model")
+    _global_model = model
+    return result
+
+
+_global_model: keras.models.Sequential = train('accuracy')
