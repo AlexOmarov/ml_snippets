@@ -1,6 +1,6 @@
 from tensorboard import program
 
-from tensorflow_start import start as start
+from business.mnist import start as start
 
 if __name__ == '__main__':
     tb = program.TensorBoard()

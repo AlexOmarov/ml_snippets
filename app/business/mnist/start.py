@@ -15,9 +15,9 @@ functions:
 """
 
 from tensorflow import keras as keras
-from tensorboard_util import histogram_callback
+from business.util.ml_tensorboard import histogram_callback
 
-from util import logger as log
+from business.util import logger as log
 
 
 def train(metric: str):

@@ -1,6 +1,6 @@
 from flask import Flask
 import logging
-import app.controllers as controllers
+import presentation.controllers as controllers
 
 
 app = Flask(__name__)
