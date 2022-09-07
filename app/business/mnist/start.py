@@ -15,9 +15,11 @@ functions:
 """
 
 from tensorflow import keras as keras
+
+from business.util.ml_logger import logger
 from business.util.ml_tensorboard import histogram_callback
 
-from business.util import logger as log
+log = logger.get_logger(__name__.replace('__', '\''))
 
 
 def train(metric: str):

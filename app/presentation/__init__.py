@@ -1,4 +1,4 @@
-from presentation.controllers import routes
+from controllers import routes
 
 
 def init(app):
