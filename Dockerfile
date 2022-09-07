@@ -1,7 +1,7 @@
 FROM nvidia/cuda:11.7.1-base-ubuntu20.04
 
-WORKDIR /od_docker
-ADD . /od_docker
+WORKDIR /ml_snippets
+ADD . /ml_snippets
 
 # Since wget is missing
 RUN apt-get update && apt-get install -y wget

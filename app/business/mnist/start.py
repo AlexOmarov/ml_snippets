@@ -13,6 +13,7 @@ functions:
 
     * train - prints the resulting tensor
 """
+import tensorflow as tf
 #  Lib imports
 from tensorflow import keras as keras
 
@@ -67,6 +68,23 @@ def _get_dataset() -> tuple:
     return (x_train, y_train), (x_test, y_test)
 
 
+def _convert_to_lite(model: keras.models.Sequential):
+    # Convert the model.
+    converter = tf.lite.TFLiteConverter.from_keras_model(model)
+    tflite_model = converter.convert()
+    # Save the model.
+    with open('models/model.tflite', 'wb') as f:
+        f.write(tflite_model)
+
+
+def _refresh_model_sources(model: keras.models.Sequential):
+    # Print model scheme
+    global _global_model
+    keras.utils.plot_model(model, "models/model.png", show_shapes=True)
+    model.save("models/model")
+    _global_model = model
+
+
 def predict(image: str):
     # TODO: Process prediction
     result = _global_model.predict(image)
@@ -89,7 +107,6 @@ def train(metric: str):
     NotImplementedError
         If passed metric isn't supported.
     """
-    global _global_model
     # Get basic vars
     (x_train, y_train), (x_test, y_test) = _get_dataset()  # x - images, y - labels
     model = _get_model()
@@ -105,10 +122,12 @@ def train(metric: str):
 
     # Get final tensor
     print(probability_model(x_test[:5]))
-    # Print model scheme
-    keras.utils.plot_model(model, "models/model.png", show_shapes=True)
-    model.save("models/model")
-    _global_model = model
+
+    # Refresh model sources
+    _refresh_model_sources(probability_model)
+
+    # Convert to Tensorflow lite
+    _convert_to_lite(probability_model)
     return result
 
 
