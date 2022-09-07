@@ -112,13 +112,13 @@ def train(metric: str):
     model = _get_model()
     loss_fn = _get_loss_function()
 
+    # Create probability model
+    probability_model = _get_probability_model(model)
+
     # Train model
     _compile_model(model, loss_fn, metric)
     _fit(model, x_train, y_train, [histogram_callback.get_histogram_callback(1)])
     result = model.evaluate(x_test, y_test, verbose=2)
-
-    # Create probability model
-    probability_model = _get_probability_model(model)
 
     # Get final tensor
     print(probability_model(x_test[:5]))
