@@ -17,6 +17,7 @@ import tensorflow as tf
 #  Lib imports
 from tensorflow import keras as keras
 
+from business.mnist.mnist_result import MnistResult
 #  App imports
 from business.util.ml_logger import logger
 from business.util.ml_tensorboard import histogram_callback
@@ -85,10 +86,13 @@ def _refresh_model_sources(model: keras.models.Sequential):
     _global_model = model
 
 
-def predict(image: str):
-    # TODO: Process prediction
-    result = _global_model.predict(image)
-    return ""
+def predict(image) -> MnistResult:
+    # TODO: Get pixel tensor from image, predict and fill response
+    # werkzeug.datastructures.FileStorage
+    result = type(image)
+
+    print(result)
+    return MnistResult(imageName="Fahrenheit 451", label="Bradbury")
 
 
 def train(metric: str):
