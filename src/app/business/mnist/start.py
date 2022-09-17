@@ -8,19 +8,21 @@ This tool accepts no parameters.
 This script requires that `tensorflow` be installed within the Python
 environment you are running this script in.
 
-This file can also be imported as a module and contains the following
-functions:
+This file can also be imported as a module and contains the following functions:
 
-    * train - prints the resulting tensor
+    * train - trains model, set global model, transforms to tensorflow lite and saves on a drive
+    * predict - gets an image and returns MnistResult with predicted class
 """
-import tensorflow as tf
 #  Lib imports
+import tensorflow as tf
 from tensorflow import keras as keras
+from werkzeug.datastructures import FileStorage
 
-from business.mnist.mnist_result import MnistResult
 #  App imports
+from business.mnist.mnist_result import MnistResult
 from business.util.ml_logger import logger
 from business.util.ml_tensorboard import histogram_callback
+from src.resource.config import Config
 
 log = logger.get_logger(__name__.replace('__', '\''))
 
@@ -74,19 +76,32 @@ def _convert_to_lite(model: keras.models.Sequential):
     converter = tf.lite.TFLiteConverter.from_keras_model(model)
     tflite_model = converter.convert()
     # Save the model.
-    with open('models/model.tflite', 'wb') as f:
+    with open(Config.MODEL_PATH + 'model.tflite', 'wb') as f:
         f.write(tflite_model)
 
 
 def _refresh_model_sources(model: keras.models.Sequential):
     # Print model scheme
     global _global_model
-    keras.utils.plot_model(model, "models/model.png", show_shapes=True)
-    model.save("models/model")
+    keras.utils.plot_model(model, Config.MODEL_PATH + "model.png", show_shapes=True)
+    model.save(Config.MODEL_PATH + "model")
     _global_model = model
 
 
-def predict(image) -> MnistResult:
+def predict(image: FileStorage) -> MnistResult:
+    """
+    Makes a prediction based on passed image.
+
+    Parameters
+    ----------
+    image : str, optional
+             The metric for model compilation
+
+    Raises
+    ------
+    NotImplementedError
+        If passed metric isn't supported.
+    """
     # TODO: Get pixel tensor from image, predict and fill response
     # werkzeug.datastructures.FileStorage
     result = type(image)

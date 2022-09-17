@@ -26,4 +26,4 @@ SHELL ["conda", "run", "-n", "ml_snippets", "/bin/bash", "-c"]
 EXPOSE 5000
 
 # The code to run when container is started:
-ENTRYPOINT ["conda", "run", "-n", "ml_snippets", "python", "app.py"]
+ENTRYPOINT ["conda", "run", "-n", "ml_snippets", "python", "src/app/app.py"]

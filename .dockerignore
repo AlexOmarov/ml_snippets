@@ -8,4 +8,4 @@ build/
 ml_service.egg-info/
 MANIFEST.in
 readme.md
-setup.py
+data/

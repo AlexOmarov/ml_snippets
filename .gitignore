@@ -11,3 +11,4 @@ venv/
 ml_service.egg-info/
 build/
 dist/
+data/
