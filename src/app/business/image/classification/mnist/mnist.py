@@ -119,7 +119,7 @@ def _get_model() -> keras.models.Sequential:
     model = keras.models.Sequential([
         keras.layers.Flatten(input_shape=(28, 28)),  # Flat incoming 28x28 matrix to single vector
         keras.layers.Dense(128, activation='relu'),  # Fully integrated within previous layer
-        # Delete neurons from previous layer with probability 0.2 (make it less overfitting, more sparsed)
+        # Delete neurons from previous layer with probability 0.2 (make it less overt-rained, more sparse)
         keras.layers.Dropout(0.2),
         # Last output layer, which has 10 elements (one by each category)
         keras.layers.Dense(10)
