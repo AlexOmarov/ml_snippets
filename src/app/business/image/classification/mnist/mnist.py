@@ -1,5 +1,5 @@
 """
-Sequential neural network for classifying MNIST dataset
+Sequential neural network for classifying MNIST digits dataset
 
 This script allows the user to print to the console resulting tensor of sequential neural network for MNIST dataset.
 
@@ -13,18 +13,19 @@ This file can also be imported as a module and contains the following functions:
     * train - trains model, set global model, transforms to tensorflow lite and saves on a drive
     * predict - gets an image and returns MnistResult with predicted class
 """
+import numpy as np
 #  Lib imports
 import tensorflow as tf
 from tensorflow import keras as keras
 from tensorflow.python.framework.ops import EagerTensor
 from werkzeug.datastructures import FileStorage
 
+from business.util.ml_logger import logger
+from business.util.ml_tensorboard import histogram_callback
 #  App imports
 from presentation.api.classification_result import ClassificationResult
 from presentation.api.train_result import TrainResult
 from src.resource.config import Config
-from business.util.ml_logger import logger
-from business.util.ml_tensorboard import histogram_callback
 
 _log = logger.get_logger(__name__.replace('__', '\''))
 
@@ -34,7 +35,8 @@ _log = logger.get_logger(__name__.replace('__', '\''))
 def _get_probability_model(model: keras.Sequential) -> keras.Sequential:
     # Layer which has same amount of neurons as in previous layer and applies softmax alg for each neuron activation
     # Sum of the neuron outputs = 1? each output in [0,1]
-    return keras.Sequential([model, keras.layers.Softmax()])
+    model.add(keras.layers.Softmax())
+    return model
 
 
 def _fit(model: keras.Sequential, x_train, y_train, callbacks: list[keras.callbacks.TensorBoard]) -> None:
@@ -63,7 +65,6 @@ def _get_model() -> keras.models.Sequential:
         # Last output layer, which has 10 elements (one by each category)
         keras.layers.Dense(10)
     ])
-    _log.info(str.format("Got model {0}", model))
     return model
 
 
@@ -91,17 +92,18 @@ def _refresh_model_sources(model: keras.models.Sequential):
 
 
 def _make_prediction(tensor: EagerTensor) -> str:
-    print(type(_global_model))
-    result = _global_model.predict(tensor)
-    print(type(result))
-    print(result)
-    return ""
+    result = "NOT_DEFINED"
+    if '_global_model' in globals():
+        predictions = _global_model.predict(tensor)
+        result = np.argmax(predictions, axis=1)[0].__str__()
+    return result
 
 
 def _preprocess_single_image(image_bytes):
     image = tf.image.decode_jpeg(image_bytes, channels=1)
     image = tf.image.resize(image, size=[28, 28])
-    image = (image - 127.5) / 127.5
+    image: EagerTensor = tf.expand_dims(image[:, :, 0], 0)
+    image = image / 255.0
     return image
 
 
@@ -115,7 +117,7 @@ def predict(image: FileStorage) -> ClassificationResult:
              storage with image info. Must be in jpeg format
     """
     result = _make_prediction(_preprocess_single_image(image.read()))
-    return ClassificationResult(imageName=image.name, label=result)
+    return ClassificationResult(imageName=image.filename, label=result)
 
 
 def train(metric: str):
@@ -140,16 +142,16 @@ def train(metric: str):
     model = _get_model()
     loss_fn = _get_loss_function()
 
-    # Create probability model
-    probability_model = _get_probability_model(model)
-
     # Train model
-    _compile_model(probability_model, loss_fn, metric)
-    _fit(probability_model, x_train, y_train, [histogram_callback.get_histogram_callback(1)])
-    result = probability_model.evaluate(x_test, y_test, verbose=2)
+    _compile_model(model, loss_fn, metric)
+    _fit(model, x_train, y_train, [histogram_callback.get_histogram_callback(1)])
+    result = model.evaluate(x_test, y_test, verbose=2)
 
     # Get final tensor
-    print(probability_model(x_test[:5]))
+    print(model(x_test[:5]))
+
+    # Create probability model
+    probability_model = _get_probability_model(model)
 
     # Refresh model sources
     _refresh_model_sources(probability_model)
