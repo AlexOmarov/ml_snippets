@@ -16,15 +16,17 @@ This file can also be imported as a module and contains the following functions:
 #  Lib imports
 import tensorflow as tf
 from tensorflow import keras as keras
+from tensorflow.python.framework.ops import EagerTensor
 from werkzeug.datastructures import FileStorage
 
 #  App imports
-from business.mnist.mnist_result import MnistResult
+from presentation.api.classification_result import ClassificationResult
+from presentation.api.train_result import TrainResult
+from src.resource.config import Config
 from business.util.ml_logger import logger
 from business.util.ml_tensorboard import histogram_callback
-from src.resource.config import Config
 
-log = logger.get_logger(__name__.replace('__', '\''))
+_log = logger.get_logger(__name__.replace('__', '\''))
 
 
 # Private functions
@@ -61,7 +63,7 @@ def _get_model() -> keras.models.Sequential:
         # Last output layer, which has 10 elements (one by each category)
         keras.layers.Dense(10)
     ])
-    log.info(str.format("Got model {0}", model))
+    _log.info(str.format("Got model {0}", model))
     return model
 
 
@@ -81,33 +83,39 @@ def _convert_to_lite(model: keras.models.Sequential):
 
 
 def _refresh_model_sources(model: keras.models.Sequential):
-    # Print model scheme
+    # Refresh model sources
     global _global_model
     keras.utils.plot_model(model, Config.MODEL_PATH + "model.png", show_shapes=True)
     model.save(Config.MODEL_PATH + "model")
     _global_model = model
 
 
-def predict(image: FileStorage) -> MnistResult:
+def _make_prediction(tensor: EagerTensor) -> str:
+    print(type(_global_model))
+    result = _global_model.predict(tensor)
+    print(type(result))
+    print(result)
+    return ""
+
+
+def _preprocess_single_image(image_bytes):
+    image = tf.image.decode_jpeg(image_bytes, channels=1)
+    image = tf.image.resize(image, size=[28, 28])
+    image = (image - 127.5) / 127.5
+    return image
+
+
+def predict(image: FileStorage) -> ClassificationResult:
     """
     Makes a prediction based on passed image.
 
     Parameters
     ----------
-    image : str, optional
-             The metric for model compilation
-
-    Raises
-    ------
-    NotImplementedError
-        If passed metric isn't supported.
+    image : FileStorage
+             storage with image info. Must be in jpeg format
     """
-    # TODO: Get pixel tensor from image, predict and fill response
-    # werkzeug.datastructures.FileStorage
-    result = type(image)
-
-    print(result)
-    return MnistResult(imageName="Fahrenheit 451", label="Bradbury")
+    result = _make_prediction(_preprocess_single_image(image.read()))
+    return ClassificationResult(imageName=image.name, label=result)
 
 
 def train(metric: str):
@@ -149,7 +157,7 @@ def train(metric: str):
     # Convert to Tensorflow lite
     _convert_to_lite(probability_model)
 
-    return result
+    return TrainResult(metric=metric, data=result)
 
 
-_global_model: keras.models.Sequential = train('accuracy')
+_global_model: keras.models.Sequential

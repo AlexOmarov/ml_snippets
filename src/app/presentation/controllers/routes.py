@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 
-from business.mnist.start import train, predict
+from business.image.classification.mnist.mnist import train, predict
 
 ml = Blueprint('ml', __name__)
 

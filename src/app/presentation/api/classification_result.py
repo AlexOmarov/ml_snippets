@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 
 @dataclass
-class MnistResult:
+class ClassificationResult:
     imageName: str
     label: str
 
