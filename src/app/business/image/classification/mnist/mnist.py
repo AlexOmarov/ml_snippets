@@ -13,21 +13,80 @@ This file can also be imported as a module and contains the following functions:
     * train - trains model, set global model, transforms to tensorflow lite and saves on a drive
     * predict - gets an image and returns MnistResult with predicted class
 """
-import numpy as np
+
 #  Lib imports
+import numpy as np
 import tensorflow as tf
 from tensorflow import keras as keras
 from tensorflow.python.framework.ops import EagerTensor
 from werkzeug.datastructures import FileStorage
 
+#  App imports
 from business.util.ml_logger import logger
 from business.util.ml_tensorboard import histogram_callback
-#  App imports
 from presentation.api.classification_result import ClassificationResult
 from presentation.api.train_result import TrainResult
 from src.resource.config import Config
 
+_global_model: keras.models.Sequential
 _log = logger.get_logger(__name__.replace('__', '\''))
+
+_ERROR_LABEL = "NOT_DEFINED"
+
+
+def predict(image: FileStorage) -> ClassificationResult:
+    """
+    Makes a prediction based on passed image.
+
+    Parameters
+    ----------
+    image : FileStorage
+             storage with image info
+    """
+    result = _make_prediction(_preprocess_single_image(image.read()))
+    return ClassificationResult(imageName=image.filename, label=result)
+
+
+def train(metric: str):
+    """
+    Prepares model for predictions.
+    Creates model, updates global model, writes model to disk and converts in to tensorflow lite
+
+    If the argument `metric` isn't passed in, the default accuracy metric is used.
+
+    Parameters
+    ----------
+    metric : str, optional
+             The metric for model compilation
+
+    Raises
+    ------
+    NotImplementedError
+        If passed metric isn't supported.
+    """
+    # Get basic vars
+    (x_train, y_train), (x_test, y_test) = _get_dataset()  # x - images, y - labels
+    model = _get_model()
+    loss_fn = _get_loss_function()
+
+    # Train model
+    _compile_model(model, loss_fn, metric)
+    _fit(model, x_train, y_train, [histogram_callback.get_histogram_callback(1)])
+    result = model.evaluate(x_test, y_test, verbose=2)
+
+    # Get final tensor
+    print(model(x_test[:5]))
+
+    # Create probability model
+    probability_model = _get_probability_model(model)
+
+    # Refresh model sources
+    _refresh_model_sources(probability_model)
+
+    # Convert to Tensorflow lite
+    _convert_to_lite(probability_model)
+
+    return TrainResult(metric=metric, data=result)
 
 
 # Private functions
@@ -92,7 +151,7 @@ def _refresh_model_sources(model: keras.models.Sequential):
 
 
 def _make_prediction(tensor: EagerTensor) -> str:
-    result = "NOT_DEFINED"
+    result = _ERROR_LABEL
     if '_global_model' in globals():
         predictions = _global_model.predict(tensor)
         result = np.argmax(predictions, axis=1)[0].__str__()
@@ -103,63 +162,5 @@ def _preprocess_single_image(image_bytes):
     image = tf.image.decode_jpeg(image_bytes, channels=1)
     image = tf.image.resize(image, size=[28, 28])
     image: EagerTensor = tf.expand_dims(image[:, :, 0], 0)
-    image = image / 255.0
+    image = image / 255.0  # Normalize final tensor
     return image
-
-
-def predict(image: FileStorage) -> ClassificationResult:
-    """
-    Makes a prediction based on passed image.
-
-    Parameters
-    ----------
-    image : FileStorage
-             storage with image info. Must be in jpeg format
-    """
-    result = _make_prediction(_preprocess_single_image(image.read()))
-    return ClassificationResult(imageName=image.filename, label=result)
-
-
-def train(metric: str):
-    """
-    Prepares model for predictions.
-    Creates model, updates global model, writes model to disk and converts in to tensorflow lite
-
-    If the argument `metric` isn't passed in, the default accuracy metric is used.
-
-    Parameters
-    ----------
-    metric : str, optional
-             The metric for model compilation
-
-    Raises
-    ------
-    NotImplementedError
-        If passed metric isn't supported.
-    """
-    # Get basic vars
-    (x_train, y_train), (x_test, y_test) = _get_dataset()  # x - images, y - labels
-    model = _get_model()
-    loss_fn = _get_loss_function()
-
-    # Train model
-    _compile_model(model, loss_fn, metric)
-    _fit(model, x_train, y_train, [histogram_callback.get_histogram_callback(1)])
-    result = model.evaluate(x_test, y_test, verbose=2)
-
-    # Get final tensor
-    print(model(x_test[:5]))
-
-    # Create probability model
-    probability_model = _get_probability_model(model)
-
-    # Refresh model sources
-    _refresh_model_sources(probability_model)
-
-    # Convert to Tensorflow lite
-    _convert_to_lite(probability_model)
-
-    return TrainResult(metric=metric, data=result)
-
-
-_global_model: keras.models.Sequential
