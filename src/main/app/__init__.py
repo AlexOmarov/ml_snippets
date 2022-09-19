@@ -1,7 +1,7 @@
 from flask import Flask
 import logging
 
-from src.resource.config import Config
+from src.main.resource.config import Config
 from presentation.controllers import mnist, audio
 
 

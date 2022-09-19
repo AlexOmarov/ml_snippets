@@ -3,11 +3,11 @@ from dataclasses import dataclass
 
 @dataclass
 class ClassificationResult:
-    imageName: str
+    image_name: str
     label: str
 
     def serialize(self):
         return {
-            'imageName': self.imageName,
+            'imageName': self.image_name,
             'label': self.label
         }

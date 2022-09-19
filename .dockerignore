@@ -1,5 +1,7 @@
 .dockerignore
 .git
+.pytest_cache
+coverage
 .cache
 venv/
 *.pyc
@@ -7,6 +9,6 @@ dist/
 build/
 ml_service.egg-info/
 MANIFEST.in
-readme.md
+README.md
 data/
 logs/

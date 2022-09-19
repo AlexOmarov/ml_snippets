@@ -1,0 +1,7 @@
+version: '3'
+services:
+  currency_rates_service:
+    build: .
+    container_name: ml_snippets_service
+    ports:
+      - "5000:5000"

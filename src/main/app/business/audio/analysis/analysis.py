@@ -10,7 +10,7 @@ from werkzeug.datastructures import FileStorage
 #  App imports
 from business.util.ml_logger import logger
 from presentation.api.audio_analysis_result import AudioAnalysisResult
-from src.resource.config import Config
+from src.main.resource.config import Config
 
 _log = logger.get_logger(__name__.replace('__', '\''))
 

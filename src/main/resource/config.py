@@ -1,4 +1,3 @@
-# Define the application directory
 import os
 
 
@@ -9,6 +8,7 @@ class Config(object):
     # - 500 ошибку без какой либо дополнительной информации.
     DEBUG = False
     MODEL_PATH = "data/models/"
+    SERVER_PORT = 5000
     # Включение защиты против "Cross-site Request Forgery (CSRF)"
     CSRF_ENABLED = True
     # Случайный ключ, которые будет исползоваться для подписи

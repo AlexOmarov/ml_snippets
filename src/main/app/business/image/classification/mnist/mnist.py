@@ -26,7 +26,7 @@ from business.util.ml_logger import logger
 from business.util.ml_tensorboard import histogram_callback
 from presentation.api.classification_result import ClassificationResult
 from presentation.api.train_result import TrainResult
-from src.resource.config import Config
+from src.main.resource.config import Config
 
 _global_model: keras.models.Sequential
 _log = logger.get_logger(__name__.replace('__', '\''))
@@ -44,7 +44,7 @@ def predict(image: FileStorage) -> ClassificationResult:
              storage with image info
     """
     result = _make_prediction(_preprocess_single_image(image.read()))
-    return ClassificationResult(imageName=image.filename, label=result)
+    return ClassificationResult(image_name=image.filename, label=result)
 
 
 def train(metric: str):
