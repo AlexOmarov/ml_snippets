@@ -1,12 +1,5 @@
 # Created by .ignore support plugin (hsz.mobi)
-.idea/.gitignore
-.idea/inspectionProfiles/
-.idea/misc.xml
-.idea/ml_service.iml
-.idea/modules.xml
-.idea/rSettings.xml
-.idea/vcs.xml
-.idea/webResources.xml
+.idea
 venv/
 ml_service.egg-info/
 build/
