@@ -9,3 +9,4 @@ ml_service.egg-info/
 MANIFEST.in
 readme.md
 data/
+logs/

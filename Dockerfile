@@ -3,6 +3,11 @@ FROM nvidia/cuda:11.7.1-base-ubuntu20.04
 WORKDIR /ml_snippets
 ADD . /ml_snippets
 
+# Make required directories
+RUN mkdir -p /ml_snippets/data/logs
+RUN mkdir -p /ml_snippets/data/models
+RUN mkdir -p /ml_snippets/logs
+
 # Since wget is missing
 RUN apt-get update && apt-get install -y wget
 
