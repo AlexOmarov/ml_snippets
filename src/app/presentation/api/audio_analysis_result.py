@@ -3,11 +3,12 @@ from dataclasses import dataclass
 
 @dataclass
 class AudioAnalysisResult:
-    metric: str
-    data: list
+    visuals_path: str
+    frame_length: int
+    hop_length: int
 
     def serialize(self):
         return {
             'metric': self.metric,
-            'data': self.data
+            'visuals_path': self.visuals_path
         }
