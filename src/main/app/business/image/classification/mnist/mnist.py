@@ -17,6 +17,10 @@ This file can also be imported as a module and contains the following functions:
 #  Lib imports
 import numpy as np
 import tensorflow as tf
+from keras import Sequential
+from keras.layers import Dense, Flatten, Dropout
+from keras.losses import SparseCategoricalCrossentropy, Loss
+from numpy import ndarray
 from tensorflow import keras as keras
 from tensorflow.python.framework.ops import EagerTensor
 from werkzeug.datastructures import FileStorage
@@ -33,6 +37,13 @@ _log = logger.get_logger(__name__.replace('__', '\''))
 
 _ERROR_LABEL = "NOT_DEFINED"
 
+_IMAGE_SIZE = (28, 28)
+_NORMALIZATION = 255.0
+
+_MODEL_TFLITE_NAME = 'mnist/mnist.tflite'
+_MODEL_PLOT_NAME = 'model.png'
+_MODEL_NAME = "mnist/mnist"
+
 
 def predict(image: FileStorage) -> ClassificationResult:
     """
@@ -43,11 +54,11 @@ def predict(image: FileStorage) -> ClassificationResult:
     image : FileStorage
              storage with image info
     """
-    result = _make_prediction(_preprocess_single_image(image.read()))
+    result: str = _make_prediction(_preprocess_single_image(image.read()))
     return ClassificationResult(image_name=image.filename, label=result)
 
 
-def train(metric: str):
+def train(metric: str) -> TrainResult:
     """
     Prepares model for predictions.
     Creates model, updates global model, writes model to disk and converts in to tensorflow lite
@@ -66,16 +77,13 @@ def train(metric: str):
     """
     # Get basic vars
     (x_train, y_train), (x_test, y_test) = _get_dataset()  # x - images, y - labels
-    model = _get_model()
-    loss_fn = _get_loss_function()
+    model: Sequential = _get_model()
+    loss_fn: Loss = _get_loss_function()
 
     # Train model
     _compile_model(model, loss_fn, metric)
     _fit(model, x_train, y_train, [histogram_callback.get_histogram_callback(1)])
-    result = model.evaluate(x_test, y_test, verbose=2)
-
-    # Get final tensor
-    print(model(x_test[:5]))
+    result: list = model.evaluate(x_test, y_test, verbose=2)
 
     # Create probability model
     probability_model = _get_probability_model(model)
@@ -91,7 +99,7 @@ def train(metric: str):
 
 # Private functions
 
-def _get_probability_model(model: keras.Sequential) -> keras.Sequential:
+def _get_probability_model(model: Sequential) -> Sequential:
     # Layer which has same amount of neurons as in previous layer and applies softmax alg for each neuron activation
     # Sum of the neuron outputs = 1? each output in [0,1]
     # TODO: not [0,1], why?
@@ -107,47 +115,48 @@ def _fit(model: keras.Sequential, x_train, y_train, callbacks: list[keras.callba
 def _compile_model(model: keras.Sequential, loss_fn, metric: str) -> None:
     # Adding loss function, metric and optimizer to model
     # Optimizer - algorithm which will be used for going through neurons and weights and changing weights
-    model.compile(optimizer='adam', loss=loss_fn, metrics=[metric])
+    model.compile(optimizer="adam", loss=loss_fn, metrics=[metric])
 
 
-def _get_loss_function() -> keras.losses.SparseCategoricalCrossentropy:
+def _get_loss_function() -> Loss:
     # Function which defines losses after each optimization loop (related to passed metric)
-    return keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+    return SparseCategoricalCrossentropy(from_logits=True)
 
 
-def _get_model() -> keras.models.Sequential:
+def _get_model() -> Sequential:
     # Create simple sequential model (each layer after another). Model - collection of layers
-    model = keras.models.Sequential([
-        keras.layers.Flatten(input_shape=(28, 28)),  # Flat incoming 28x28 matrix to single vector
-        keras.layers.Dense(128, activation='relu'),  # Fully integrated within previous layer
+    model: Sequential = Sequential([
+        Flatten(input_shape=_IMAGE_SIZE),  # Flat incoming 28x28 matrix to single vector
+        Dense(128, activation="relu"),  # Fully integrated within previous layer
         # Delete neurons from previous layer with probability 0.2 (make it less over-trained, more sparse)
-        keras.layers.Dropout(0.2),
+        Dropout(0.2),
         # Last output layer, which has 10 elements (one by each category)
-        keras.layers.Dense(10)
+        Dense(10)
     ])
     return model
 
 
-def _get_dataset() -> tuple:
+def _get_dataset() -> tuple[tuple[ndarray, ndarray], tuple[ndarray, ndarray]]:
     (x_train, y_train), (x_test, y_test) = keras.datasets.mnist.load_data()
-    x_train, x_test = x_train / 255.0, x_test / 255.0  # Normalize image vectors (make values interval less)
+    # Normalize image vectors (make values interval less)
+    x_train, x_test = x_train / _NORMALIZATION, x_test / _NORMALIZATION
     return (x_train, y_train), (x_test, y_test)
 
 
-def _convert_to_lite(model: keras.models.Sequential):
+def _convert_to_lite(model: keras.models.Sequential) -> None:
     # Convert the model.
     converter = tf.lite.TFLiteConverter.from_keras_model(model)
     tflite_model = converter.convert()
     # Save the model.
-    with open(Config.MODEL_PATH + 'mnist/mnist.tflite', 'wb') as f:
+    with open(Config.MODEL_PATH + _MODEL_TFLITE_NAME, 'wb') as f:
         f.write(tflite_model)
 
 
-def _refresh_model_sources(model: keras.models.Sequential):
+def _refresh_model_sources(model: keras.models.Sequential) -> None:
     # Refresh model sources
     global _global_model
-    keras.utils.plot_model(model, Config.MODEL_PATH + "model.png", show_shapes=True)
-    model.save(Config.MODEL_PATH + "mnist/mnist")
+    keras.utils.plot_model(model, Config.MODEL_PATH + _MODEL_PLOT_NAME, show_shapes=True)
+    model.save(Config.MODEL_PATH + _MODEL_NAME)
     _global_model = model
 
 
@@ -159,9 +168,9 @@ def _make_prediction(tensor: EagerTensor) -> str:
     return result
 
 
-def _preprocess_single_image(image_bytes):
+def _preprocess_single_image(image_bytes) -> EagerTensor:
     image = tf.image.decode_jpeg(image_bytes, channels=1)
-    image = tf.image.resize(image, size=[28, 28])
+    image = tf.image.resize(image, size=_IMAGE_SIZE)
     image: EagerTensor = tf.expand_dims(image[:, :, 0], 0)
-    image = image / 255.0  # Normalize final tensor
+    image = image / _NORMALIZATION  # Normalize final tensor
     return image
