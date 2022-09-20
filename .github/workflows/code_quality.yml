@@ -40,7 +40,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          echo "$CONDA\condabin\" >> $GITHUB_PATH
+          echo "$CONDA\condabin" >> $GITHUB_PATH
           echo $GITHUB_PATH
           echo $PATH
           conda init bash
