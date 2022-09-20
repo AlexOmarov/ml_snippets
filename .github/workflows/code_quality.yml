@@ -48,24 +48,6 @@ jobs:
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v1.0.2
 
-      - name: Install deps
-        run: |
-          conda env update --file win_environment.yaml
-
-      - uses: actions/cache@v2
-        with:
-          path: C:\Miniconda\envs\ml_snippets_service
-          key: win-conda-${{ env.CACHE_NUMBER }}
-        id: cache
-
-      - name: Test with pytest
-        run: |
-          conda info
-          conda activate ml_snippets_service
-          conda info
-          conda env list
-          python -m pytest --cov -s -v src/test/app/tests.py --junitxml coverage.xml
-
       - name: Environment
         shell: bash
         run: |
@@ -85,7 +67,6 @@ jobs:
         run: |
           set -x
           cd build
-          ls -la bw_output
           mv sonar-scanner-*-windows sonar-scanner
       - name: Sonar Scanner
         env:
@@ -96,3 +77,21 @@ jobs:
           SET PATH=%PATH%;%cd%\build\sonar-scanner\bin
           ECHO PATH=%PATH%
           sonar-scanner.bat
+
+      - name: Install deps
+        run: |
+          conda env update --file win_environment.yaml
+
+      - uses: actions/cache@v2
+        with:
+          path: C:\Miniconda\envs\ml_snippets_service
+          key: win-conda-${{ env.CACHE_NUMBER }}
+        id: cache
+
+      - name: Test with pytest
+        run: |
+          conda info
+          conda activate ml_snippets_service
+          conda info
+          conda env list
+          python -m pytest --cov -s -v src/test/app/tests.py --junitxml coverage.xml
