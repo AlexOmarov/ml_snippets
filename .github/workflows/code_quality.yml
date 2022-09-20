@@ -16,7 +16,6 @@ concurrency:
 
 defaults:
   run:
-    shell: bash
     working-directory: .
 
 jobs:
