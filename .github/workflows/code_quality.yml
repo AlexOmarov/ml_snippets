@@ -23,7 +23,7 @@ env:
 jobs:
   code_quality:
     name: "Code quality"
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
 
       - name: Set up Python 3.9
@@ -36,68 +36,29 @@ jobs:
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
 
-      - name: Prepare env
+      - name: Add conda to system path
         run: |
-          echo "C:\Miniconda\condabin\" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-          echo "C:\Miniconda\" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-          echo "C:\Miniconda\Scripts\" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-          echo $GITHUB_PATH
-          echo $PATH
-          C:\\Miniconda\\condabin\\conda.bat init powershell
-
-      - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v1.0.2
-
-      - name: Environment
-        shell: bash
-        run: |
-          mkdir -p build
-          org="$(cut -d/ -f1 <<< "$GITHUB_REPOSITORY")"
-          repo="$(cut -d/ -f2 <<< "$GITHUB_REPOSITORY")"
-          echo "SONAR_ORGANIZATION=${org}" >> "$GITHUB_ENV"
-          echo "SONAR_PROJECT_KEY=${org}_${repo}" >> "$GITHUB_ENV"
-      - name: Install Sonar Scanner
-        run: |
-          Invoke-WebRequest -Uri "${{ env.SONAR_WRAPPER_URL }}" -OutFile build/build-wrapper.zip
-          Invoke-WebRequest -Uri "${{ env.SONAR_SCANNER_URL }}" -OutFile build/sonar-scanner.zip
-          Expand-Archive -LiteralPath build/build-wrapper.zip -DestinationPath build
-          Expand-Archive -LiteralPath build/sonar-scanner.zip -DestinationPath build
-      - name: Build with Sonar Wrapper
-        shell: cmd
-        run: |
-            SET PATH=%PATH%;%cd%\build\build-wrapper-win-x86
-            build-wrapper-win-x86-64 --out-dir build\bw_output
-      - name: Prepare Sonar Scanner
-        shell: bash
-        run: |
-          set -x
-          ls -la bw_output
-          cd build
-          mv sonar-scanner-*-windows sonar-scanner
-      - name: Sonar Scanner
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        shell: cmd
-        run: |
-          SET PATH=%PATH%;%cd%\build\sonar-scanner\bin
-          ECHO PATH=%PATH%
-          sonar-scanner.bat -Dsonar.cfamily.build-wrapper-output=%cd%\build\bw_output
+          # $CONDA is an environment variable pointing to the root of the miniconda directory
+          echo $CONDA/bin >> $GITHUB_PATH
 
       - name: Install deps
         run: |
-          conda env update --file win_environment.yaml
+          conda env update --file unix_environment.yaml
 
       - uses: actions/cache@v2
         with:
-          path: C:\Miniconda\envs\ml_snippets_service
-          key: win-conda-${{ env.CACHE_NUMBER }}
+          path: /usr/share/miniconda3/envs/ml_snippets_service
+          key: ubuntu-conda-${{ env.CACHE_NUMBER }}
         id: cache
 
       - name: Test with pytest
         run: |
-          conda info
           conda activate ml_snippets_service
           conda info
-          conda env list
           python -m pytest --cov -s -v src/test/app/tests.py --junitxml coverage.xml
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
