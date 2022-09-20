@@ -31,7 +31,7 @@ jobs:
       - name: "Add conda to system path"
         run: |
           # $CONDA is an environment variable pointing to the root of the miniconda directory
-          set GITHUB_PATH="%GITHUB_PATH%;%CONDA%\Scripts;%CONDA%"
+          setx GITHUB_PATH "%GITHUB_PATH%;%CONDA%\Scripts;%CONDA%"
           echo $GITHUB_PATH
       - name: "Install dependencies"
         run: |
