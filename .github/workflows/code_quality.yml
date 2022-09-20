@@ -35,11 +35,10 @@ jobs:
       - name: Install dependencies
         run: |
           C:\\Miniconda\\condabin\\conda.bat env update --file win_environment.yaml
-          C:\\Miniconda\\condabin\\conda.bat init powershell
       - name: Test with pytest
         run: |
           C:\\Miniconda\\condabin\\conda.bat activate ml_snippets_service
-          C:\\Miniconda\\condabin\\conda.bat conda info
+          C:\\Miniconda\\condabin\\conda.bat info
           python -m pytest --cov=src.main.app -s -v src/test/app/tests.py --cov-branch --junitxml coverage.xml
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
