@@ -21,8 +21,6 @@ defaults:
 
 env:
   CACHE_NUMBER: 0  # increase to reset cache manually
-  SONAR_WRAPPER_URL: https://sonarcloud.io/static/cpp/build-wrapper-win-x86.zip
-  SONAR_SCANNER_URL: https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.4.0.2170-windows.zip
 
 
 jobs:
@@ -30,27 +28,22 @@ jobs:
     name: "Code quality"
     runs-on: ubuntu-latest
     steps:
-
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
       - name: Set up Python 3.9
         uses: actions/setup-python@v3
         with:
           python-version: 3.9
 
-      - name: Checkout repo
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
-
       - name: Add conda to system path
         run: |
           # $CONDA is an environment variable pointing to the root of the miniconda directory
           echo $CONDA/bin >> $GITHUB_PATH
-          conda init bash
-          conda activate root
 
       - name: Install deps
         run: |
-          conda env update --file unix_environment.yaml
+          conda env update --file unix_environment.yaml --name base
 
       - uses: actions/cache@v2
         with:
@@ -60,8 +53,6 @@ jobs:
 
       - name: Test with pytest
         run: |
-          conda activate ml_snippets_service
-          conda info
           python -m pytest --cov -s -v src/test/app/tests.py --junitxml coverage.xml
 
       - name: SonarCloud Scan
