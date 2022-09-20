@@ -30,7 +30,7 @@ jobs:
          python-version: 3.9
       - name: "Install dependencies"
         run: |
-          C:\\Miniconda\\condabin\\conda.bat env update --file win_environment.yml --name ml_snippets_service
+          C:\\Miniconda\\condabin\\conda.bat env update --file win_environment.yaml --name ml_snippets_service
           C:\\Miniconda\\condabin\\conda.bat init powershell
       - name: Test with pytest
         run: |
