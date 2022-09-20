@@ -89,7 +89,7 @@ Use `docker-compose-local.yml` to build the image and create a container.
 If you want to get total coverage with local changes, then you should run following task:
 
 ```bash
-pytest --cov -s -v src/test/app/tests.py --cov-branch --cov-report=xml
+pytest --cov -s -v src/test/app/tests.py --cov-branch --junitxml coverage.xml
 ```
 
 Then, xml test report with coverage will be generated on local machine in root folder.

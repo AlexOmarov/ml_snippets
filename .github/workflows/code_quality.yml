@@ -1,0 +1,76 @@
+name: "Code quality workflow"
+
+on:
+  push:
+    branches:
+      - main
+      - 'releases/**'
+  pull_request:
+    types: [ opened, synchronize, reopened ]
+
+permissions: read-all
+
+concurrency:
+  group: code_quality
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+    working-directory: .
+
+jobs:
+  code_quality:
+    name: "Code quality"
+    runs-on: windows-latest
+
+    steps:
+      - name: "Set up Python 3.9"
+        uses: actions/setup-python@v3
+        with:
+         python-version: 3.9
+      - name: "Add conda to system path"
+        run: |
+          # $CONDA is an environment variable pointing to the root of the miniconda directory
+          echo $CONDA/bin >> $GITHUB_PATH
+      - name: "Install dependencies"
+        run: |
+          conda env update --file win_environment.yml
+      - name: Test with pytest
+        run: |
+          pytest --cov -s -v src/test/app/tests.py --cov-branch --junitxml coverage.xml
+      - name: "SonarCloud Scan"
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+
+
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v3
+      with:
+        python-version: 3.10
+    - name: Add conda to system path
+      run: |
+        # $CONDA is an environment variable pointing to the root of the miniconda directory
+        echo $CONDA/bin >> $GITHUB_PATH
+    - name: Install dependencies
+      run: |
+        conda env update --file environment.yml --name base
+    - name: Lint with flake8
+      run: |
+        conda install flake8
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    - name: Test with pytest
+      run: |
+        conda install pytest
+        pytest
