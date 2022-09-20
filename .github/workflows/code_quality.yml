@@ -40,8 +40,9 @@ jobs:
 
       - name: Install dependencies
         run: |
-          C:\\Miniconda\\condabin\\conda.bat init bash
-          C:\\Miniconda\\condabin\\conda.bat env update --file win_environment.yaml
+          GITHUB_PATH %GITHUB_PATH%;C:\\Miniconda\\condabin
+          conda init bash
+          conda env update --file win_environment.yaml
 
       - uses: actions/cache@v2
         with:
@@ -51,10 +52,10 @@ jobs:
 
       - name: Test with pytest
         run: |
-          C:\\Miniconda\\condabin\\conda.bat info
-          C:\\Miniconda\\\Scripts\\activate ml_snippets_service
-          C:\\Miniconda\\condabin\\conda.bat info
-          C:\\Miniconda\\condabin\\conda.bat env list
+          conda info
+          activate ml_snippets_service
+          conda info
+          conda env list
           python -m pytest --cov=src.main.app -s -v src/test/app/tests.py --cov-branch --junitxml coverage.xml
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
