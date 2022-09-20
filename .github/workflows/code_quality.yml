@@ -39,6 +39,7 @@ jobs:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
 
       - name: Install dependencies
+        shell: bash -l {0}
         run: |
           echo "$CONDA\condabin" >> $GITHUB_PATH
           echo "$CONDA" >> $GITHUB_PATH
@@ -57,7 +58,7 @@ jobs:
       - name: Test with pytest
         run: |
           conda info
-          activate ml_snippets_service
+          conda activate ml_snippets_service
           conda info
           conda env list
           python -m pytest --cov=src.main.app -s -v src/test/app/tests.py --cov-branch --junitxml coverage.xml
