@@ -40,9 +40,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          setx -m PATH "%PATH%;C:\\Miniconda\\condabin\\"
-          echo %PATH%
-          echo $PATH
+          echo "$CONDA\condabin" >> $GITHUB_PATH
           conda init bash
           conda env update --file win_environment.yaml
 
