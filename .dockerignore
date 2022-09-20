@@ -1,5 +1,7 @@
 .dockerignore
 .git
+coverage.xml
+.coverage
 .pytest_cache
 coverage
 .cache
