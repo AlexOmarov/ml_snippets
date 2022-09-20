@@ -41,7 +41,6 @@ jobs:
           echo $GITHUB_PATH
           echo $PATH
           C:\\Miniconda\\condabin\\conda.bat init powershell
-          conda env update --file win_environment.yaml
 
       - name: Install deps
         run: |
