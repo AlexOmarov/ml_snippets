@@ -33,14 +33,18 @@ jobs:
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
 
-      - name: Install dependencies
+      - name: Prepare env
         run: |
           echo "C:\Miniconda\condabin\" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
           echo "C:\Miniconda\" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
           echo "C:\Miniconda\Scripts\" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
           echo $GITHUB_PATH
           echo $PATH
-          conda init powershell
+          C:\\Miniconda\\condabin\\conda.bat init powershell
+          conda env update --file win_environment.yaml
+
+      - name: Install deps
+        run: |
           conda env update --file win_environment.yaml
 
       - uses: actions/cache@v2
