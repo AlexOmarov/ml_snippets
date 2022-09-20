@@ -1,3 +1,4 @@
+from src.main import app
 def setup():
     print("basic setup into module")
 

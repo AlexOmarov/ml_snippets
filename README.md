@@ -79,7 +79,8 @@ You can run application either via PyCharm launch configuration (preferred way) 
 
 ```bash
 $ conda activate ml_snippets_service
-$ python -m src.main.app.app.py # TODO: cannot find other modules
+# Here insert into PYTHONPATH env paths to src.main.app folder
+$ python -m src.main.app.app.py
 ```
 
 When launching from PyCharm make sure you choose newly created conda interpreter and mark
@@ -94,7 +95,8 @@ Use `docker-compose-local.yml` to build the image and create a container.
 If you want to get total coverage with local changes, then you should run following task:
 
 ```bash
-pytest --cov -s -v src/test/app/tests.py --cov-branch --junitxml coverage.xml
+# TODO: wrong coverage
+python -m pytest --cov -s -v src/test/app/tests.py --junitxml coverage.xml
 ```
 
 Then, xml test report with coverage will be generated on local machine in root folder.
