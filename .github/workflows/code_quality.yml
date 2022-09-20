@@ -40,6 +40,7 @@ jobs:
         run: |
           # $CONDA is an environment variable pointing to the root of the miniconda directory
           echo $CONDA/bin >> $GITHUB_PATH
+          export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/share/miniconda3/envs/ml_snippets_service/Library/lib"
 
       - name: Install deps
         run: |
