@@ -40,7 +40,6 @@ jobs:
         run: |
           # $CONDA is an environment variable pointing to the root of the miniconda directory
           echo $CONDA/bin >> $GITHUB_PATH
-          echo /usr/share/miniconda3/envs/ml_snippets_service/Library/lib >> $LD_LIBRARY_PATH
           apt-get update -y && apt-get install -y --no-install-recommends build-essential gcc libsndfile1
       - name: Install deps
         run: |
