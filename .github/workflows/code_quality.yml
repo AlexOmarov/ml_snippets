@@ -40,7 +40,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          GITHUB_PATH %GITHUB_PATH%;C:\\Miniconda\\condabin
+          set GITHUB_PATH="%GITHUB_PATH%;C:\\Miniconda\\condabin\\"
           conda init bash
           conda env update --file win_environment.yaml
 
