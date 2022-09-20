@@ -16,6 +16,7 @@ concurrency:
 
 defaults:
   run:
+    shell: bash
     working-directory: .
 
 jobs:
@@ -26,7 +27,7 @@ jobs:
       - name: Set up Python 3.9
         uses: actions/setup-python@v3
         with:
-         python-version: 3.9
+          python-version: 3.9
       - name: Checkout repo
         uses: actions/checkout@v3
         with:
