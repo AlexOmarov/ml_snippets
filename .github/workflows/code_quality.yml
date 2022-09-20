@@ -3,7 +3,7 @@ name: "Code quality workflow"
 on:
   push:
     branches:
-      - main
+      - master
       - 'releases/**'
   pull_request:
     types: [ opened, synchronize, reopened ]
