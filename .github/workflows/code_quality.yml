@@ -62,10 +62,16 @@ jobs:
           Invoke-WebRequest -Uri "${{ env.SONAR_SCANNER_URL }}" -OutFile build/sonar-scanner.zip
           Expand-Archive -LiteralPath build/build-wrapper.zip -DestinationPath build
           Expand-Archive -LiteralPath build/sonar-scanner.zip -DestinationPath build
+      - name: Build with Sonar Wrapper
+        shell: cmd
+        run: |
+            SET PATH=%PATH%;%cd%\build\build-wrapper-win-x86
+            build-wrapper-win-x86-64 --out-dir build\bw_output
       - name: Prepare Sonar Scanner
         shell: bash
         run: |
           set -x
+          ls -la bw_output
           cd build
           mv sonar-scanner-*-windows sonar-scanner
       - name: Sonar Scanner
@@ -76,7 +82,7 @@ jobs:
         run: |
           SET PATH=%PATH%;%cd%\build\sonar-scanner\bin
           ECHO PATH=%PATH%
-          sonar-scanner.bat
+          sonar-scanner.bat -Dsonar.cfamily.build-wrapper-output=%cd%\build\bw_output
 
       - name: Install deps
         run: |
