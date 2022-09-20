@@ -39,6 +39,7 @@ jobs:
         run: |
           C:\\Miniconda\\condabin\\conda.bat activate ml_snippets_service
           C:\\Miniconda\\condabin\\conda.bat info
+          C:\\Miniconda\\condabin\\conda.bat env list
           python -m pytest --cov=src.main.app -s -v src/test/app/tests.py --cov-branch --junitxml coverage.xml
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
