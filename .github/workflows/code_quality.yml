@@ -34,6 +34,7 @@ jobs:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
       - name: Install dependencies
         run: |
+          C:\\Miniconda\\condabin\\conda.bat init
           C:\\Miniconda\\condabin\\conda.bat env update --file win_environment.yaml
       - name: Test with pytest
         run: |
