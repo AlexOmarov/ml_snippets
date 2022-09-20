@@ -41,6 +41,7 @@ jobs:
           # $CONDA is an environment variable pointing to the root of the miniconda directory
           echo $CONDA/bin >> $GITHUB_PATH
           sudo apt-get update -y && sudo apt-get install -y --no-install-recommends build-essential gcc libsndfile1
+          sudo apt-get upgrade libstdc++6
       - name: Install deps
         run: |
           conda env update --file unix_environment.yaml --name base
