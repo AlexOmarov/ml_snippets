@@ -9,6 +9,7 @@ class AudioAnalysisResult:
 
     def serialize(self):
         return {
-            'metric': self.metric,
+            'frame_length': self.frame_length,
+            'hop_length': self.hop_length,
             'visuals_path': self.visuals_path
         }
