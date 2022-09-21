@@ -3,7 +3,8 @@ from dataclasses import dataclass
 
 @dataclass
 class AudioAnalysisResult:
-    visuals_path: str
+    time_features_plot_path: str
+    freq_features_plot_path: str
     frame_length: int
     hop_length: int
 
@@ -11,5 +12,6 @@ class AudioAnalysisResult:
         return {
             'frame_length': self.frame_length,
             'hop_length': self.hop_length,
-            'visuals_path': self.visuals_path
+            'time_features_plot_path': self.time_features_plot_path,
+            'freq_features_plot_path': self.freq_features_plot_path
         }
