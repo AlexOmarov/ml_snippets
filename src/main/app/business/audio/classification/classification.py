@@ -35,6 +35,7 @@ def predict(audio: FileStorage) -> ClassificationResult:
 
     :param audio: Storage with audio data
     """
+    # TODO: Make prediction
     return ClassificationResult(image_name=audio.filename, label="")
 
 
@@ -50,5 +51,5 @@ def train(metric: str) -> TrainResult:
 
     :exception NotImplementedError If passed metric isn't supported.
     """
-
+    # TODO: Train model
     return TrainResult(metric=metric, data=[""])
