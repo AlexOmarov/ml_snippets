@@ -1,4 +1,3 @@
-from src.main import app
 def setup():
     print("basic setup into module")
 
@@ -38,9 +37,11 @@ class TestUM:
     def teardown(self):
         print("basic teardown into class")
 
+    @classmethod
     def setup_class(cls):
         print("class setup")
 
+    @classmethod
     def teardown_class(cls):
         print("class teardown")
 
