@@ -96,7 +96,6 @@ Use `docker-compose-local.yml` to build the image and create a container.
 If you want to get total coverage with local changes, then you should run following task:
 
 ```bash
-# TODO: wrong coverage
 python -m pytest --cov -s -v src/test/app/tests.py --junitxml coverage.xml
 ```
 

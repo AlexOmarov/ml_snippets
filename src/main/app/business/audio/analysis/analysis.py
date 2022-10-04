@@ -28,6 +28,7 @@ from presentation.api.audio_analysis_result import AudioAnalysisResult
 from src.main.resource.config import Config
 
 _log = logger.get_logger(__name__.replace('__', '\''))
+_COLOR_BAR = "%+2.f"
 
 
 def analyse(storage: FileStorage, frame_length: int, hop_length: int) -> AudioAnalysisResult:
@@ -45,6 +46,10 @@ def analyse(storage: FileStorage, frame_length: int, hop_length: int) -> AudioAn
 
     """
     audio, sr = librosa.load(storage)
+    filter_banks = librosa.filters.mel(n_fft=2048, sr=sr, n_mels=10)
+    # TODO: Audio data must be of type numpy.ndarray
+    mel_spectrogram = librosa.feature.melspectrogram(scale=audio, n_fft=2048, sr=sr, hop_length=512, n_mels=90)
+    log_mel_spectrogram = librosa.power_to_db(mel_spectrogram)
 
     ae = _get_amplitude_envelope(audio, frame_length, hop_length)
     zcr = librosa.feature.zero_crossing_rate(audio, frame_length=frame_length, hop_length=hop_length)[0]
@@ -56,17 +61,43 @@ def analyse(storage: FileStorage, frame_length: int, hop_length: int) -> AudioAn
     magnitude = np.absolute(ft)
     frequency = np.linspace(0, sr, len(magnitude))
 
-    time_feature_plot_path: str = _build_time_features_plot(ae, zcr, rms, audio, sr, storage.filename, t)
-    freq_feature_plot_path: str = _build_freq_features_plot(frequency, magnitude, storage.filename)
-    spectrogram_plot_path: str = _build_spectrogram_plot(magnitude, sr, storage.filename, hop_length)
-
     return AudioAnalysisResult(
-        time_feature_plot_path,
-        freq_feature_plot_path,
-        spectrogram_plot_path,
-        frame_length,
-        hop_length
+        time_features_plot_path=_build_time_features_plot(ae, zcr, rms, audio, sr, storage.filename, t),
+        freq_features_plot_path=_build_freq_features_plot(frequency, magnitude, storage.filename),
+        spectrogram_plot_path= _build_spectrogram_plot(magnitude, sr, storage.filename, hop_length),
+        mel_spectrogram_plot_path= _build_mel_banks_plot(filter_banks, sr, storage.filename),
+        mel_banks_plot_path= _build_mel_spectrogram_plot(log_mel_spectrogram, sr, storage.filename),
+        frame_length=frame_length,
+        hop_length=hop_length
     )
+
+
+def _build_mel_spectrogram_plot(log_mel_spectrogram, sr, filename: str) -> str:
+    path = Config.MODEL_PATH + filename + '_mel_spectrogram.png'
+    plt.figure(figsize=(25, 10))
+
+    plt.subplot(3, 1, 1)
+
+    librosa.display.specshow(log_mel_spectrogram, sr=sr, x_axis="time", y_axis="mel")
+    plt.colorbar(format=_COLOR_BAR)
+    plt.title(filename)
+    plt.savefig(path)
+
+    return path
+
+
+def _build_mel_banks_plot(filter_banks, sr, filename: str) -> str:
+    path = Config.MODEL_PATH + filename + '_mel_banks.png'
+    plt.figure(figsize=(25, 10))
+
+    plt.subplot(3, 1, 1)
+
+    librosa.display.specshow(filter_banks, sr=sr, x_axis="linear")
+    plt.colorbar(format=_COLOR_BAR)
+    plt.title(filename)
+    plt.savefig(path)
+
+    return path
 
 
 def _build_spectrogram_plot(magnitude, sr, filename: str, hop_length: int) -> str:
@@ -78,7 +109,7 @@ def _build_spectrogram_plot(magnitude, sr, filename: str, hop_length: int) -> st
     librosa.display.specshow(
         librosa.power_to_db(magnitude ** 2), sr=sr, hop_length=hop_length, x_axis="time", y_axis="log"
     )
-    plt.colorbar(format="%+2.f")
+    plt.colorbar(format=_COLOR_BAR)
     plt.title(filename)
     plt.savefig(path)
 

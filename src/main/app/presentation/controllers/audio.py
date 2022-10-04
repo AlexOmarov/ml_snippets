@@ -7,7 +7,7 @@ audio_blueprint = Blueprint('audio_blueprint', __name__)
 
 
 @audio_blueprint.route('/audio/analyse', methods=['POST'])
-def predict_img():
+def analyse_audio():
     return jsonify(result=analyse(
         request.files.get('audio', ''),
         request.args.get('frame_length', default=2048, type=int),
@@ -16,5 +16,5 @@ def predict_img():
 
 
 @audio_blueprint.route('/audio/classify', methods=['POST'])
-def predict_img():
+def classify():
     return jsonify(result=predict(request.files.get('audio', '')).serialize())
