@@ -18,10 +18,10 @@ class TestLogger:
     def teardown_class(cls):
         print("class teardown")
 
-    def setup_method(self, method):
+    def setup_method(self):
         print("method setup")
 
-    def teardown_method(self, method):
+    def teardown_method(self):
         print("method teardown")
 
     def test_created_logger(self):
