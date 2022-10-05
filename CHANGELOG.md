@@ -1,3 +1,9 @@
+### 1.0.2
+#### Stories:
+`ML-8`
+#### Features:
+- Bug fixes, tests
+
 ### 1.0.1
 #### Stories:
 `ML-2`
