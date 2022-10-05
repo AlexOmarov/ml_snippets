@@ -3,7 +3,7 @@ import logging
 import business.util.ml_logger.logger as log_module
 
 
-class LoggerTests:
+class TestLogger:
     def setup(self):
         print("basic setup into class")
 

@@ -6,6 +6,6 @@ build-backend = "hatchling.build"
 name = "src"
 
 [tool.pytest.ini_options]
-addopts = [
-    "--import-mode=importlib",
+pythonpath = [
+  ".", "src/main/app"
 ]
