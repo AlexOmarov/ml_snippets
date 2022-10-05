@@ -47,8 +47,7 @@ def analyse(storage: FileStorage, frame_length: int, hop_length: int) -> AudioAn
     """
     audio, sr = librosa.load(storage)
     filter_banks = librosa.filters.mel(n_fft=2048, sr=sr, n_mels=10)
-    # TODO: Audio data must be of type numpy.ndarray
-    mel_spectrogram = librosa.feature.melspectrogram(scale=audio, n_fft=2048, sr=sr, hop_length=512, n_mels=90)
+    mel_spectrogram = librosa.feature.melspectrogram(y=audio, n_fft=2048, sr=sr, hop_length=512, n_mels=90)
     log_mel_spectrogram = librosa.power_to_db(mel_spectrogram)
 
     ae = _get_amplitude_envelope(audio, frame_length, hop_length)
