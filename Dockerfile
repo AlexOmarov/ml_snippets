@@ -19,10 +19,12 @@ RUN wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -
 
 ENV PATH /opt/conda/bin:$PATH
 
+RUN apt-get update -y && apt-get install -y --no-install-recommends build-essential gcc libsndfile1
+
 # Install gcc as it is missing in our base layer
 RUN apt-get update && apt-get -y install gcc
 
-#  Remove deps from environment, download it from setuptools
+#  Create conda env
 RUN conda config --set unsatisfiable_hints false
 RUN conda env create -f unix_environment.yaml
 

@@ -40,15 +40,16 @@ jobs:
           echo $CONDA/bin >> $GITHUB_PATH
           sudo apt-get update -y && sudo apt-get install -y --no-install-recommends build-essential gcc libsndfile1
           sudo apt-get upgrade libstdc++6
-      - name: Install deps
-        run: |
-          conda env update --file unix_environment.yaml --name base
 
       - uses: actions/cache@v2
         with:
           path: /usr/share/miniconda3/envs/ml_snippets_service
           key: ubuntu-conda-${{ env.CACHE_NUMBER }}
         id: cache
+
+      - name: Install deps
+        run: |
+          conda env update --file unix_environment.yaml --name base
 
       - name: Test with pytest
         run: |

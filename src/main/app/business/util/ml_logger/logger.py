@@ -6,16 +6,8 @@ _log_format = f"%(asctime)s - [%(levelname)s] - %(name)s - (%(filename)s).%(func
 def get_logger(name):
     logger = logging.getLogger(name)
     logger.setLevel(logging.INFO)
-    # logger.addHandler(_get_file_handler())
     logger.addHandler(_get_stream_handler())
     return logger
-
-
-def _get_file_handler():
-    file_handler = logging.FileHandler("x.log")
-    file_handler.setLevel(logging.WARNING)
-    file_handler.setFormatter(logging.Formatter(_log_format))
-    return file_handler
 
 
 def _get_stream_handler():

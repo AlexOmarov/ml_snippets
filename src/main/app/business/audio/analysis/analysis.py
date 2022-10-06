@@ -53,8 +53,7 @@ def analyse(storage: FileStorage, frame_length: int, hop_length: int) -> AudioAn
     ae = _get_amplitude_envelope(audio, frame_length, hop_length)
     zcr = librosa.feature.zero_crossing_rate(audio, frame_length=frame_length, hop_length=hop_length)[0]
     rms = _get_rms(audio, frame_length=frame_length, hop_length=hop_length)
-    frames = range(0, ae.size)
-    t = librosa.frames_to_time(frames, hop_length=hop_length)
+    t = librosa.frames_to_time(range(0, ae.size), hop_length=hop_length)
 
     ft = librosa.stft(audio, n_fft=frame_length, hop_length=hop_length)
     magnitude = np.absolute(ft)
@@ -63,9 +62,9 @@ def analyse(storage: FileStorage, frame_length: int, hop_length: int) -> AudioAn
     return AudioAnalysisResult(
         time_features_plot_path=_build_time_features_plot(ae, zcr, rms, audio, sr, storage.filename, t),
         freq_features_plot_path=_build_freq_features_plot(frequency, magnitude, storage.filename),
-        spectrogram_plot_path= _build_spectrogram_plot(magnitude, sr, storage.filename, hop_length),
-        mel_spectrogram_plot_path= _build_mel_banks_plot(filter_banks, sr, storage.filename),
-        mel_banks_plot_path= _build_mel_spectrogram_plot(log_mel_spectrogram, sr, storage.filename),
+        spectrogram_plot_path=_build_spectrogram_plot(magnitude, sr, storage.filename, hop_length),
+        mel_spectrogram_plot_path=_build_mel_banks_plot(filter_banks, sr, storage.filename),
+        mel_banks_plot_path=_build_mel_spectrogram_plot(log_mel_spectrogram, sr, storage.filename),
         frame_length=frame_length,
         hop_length=hop_length
     )
