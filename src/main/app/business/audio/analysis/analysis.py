@@ -59,15 +59,64 @@ def analyse(storage: FileStorage, frame_length: int, hop_length: int) -> AudioAn
     magnitude = np.absolute(ft)
     frequency = np.linspace(0, sr, len(magnitude))
 
+    mfcc = librosa.feature.mfcc(audio, n_mfcc=13, sr=sr)
+    delta_mfcc = librosa.feature.delta(mfcc)
+    delta2_mfcc = librosa.feature.delta(mfcc, order=2)
+
     return AudioAnalysisResult(
         time_features_plot_path=_build_time_features_plot(ae, zcr, rms, audio, sr, storage.filename, t),
         freq_features_plot_path=_build_freq_features_plot(frequency, magnitude, storage.filename),
         spectrogram_plot_path=_build_spectrogram_plot(magnitude, sr, storage.filename, hop_length),
         mel_spectrogram_plot_path=_build_mel_banks_plot(filter_banks, sr, storage.filename),
         mel_banks_plot_path=_build_mel_spectrogram_plot(log_mel_spectrogram, sr, storage.filename),
+        mfcc_plot_path=_build_mfcc_plot(mfcc, sr, storage.filename),
+        delta_mfcc_plot_path=_build_delta_mfcc_plot(delta_mfcc, sr, storage.filename),
+        delta2_mfcc_plot_path=_build_delta2_mfcc_plot(delta2_mfcc, sr, storage.filename),
         frame_length=frame_length,
         hop_length=hop_length
     )
+
+
+def _build_delta2_mfcc_plot(mfcc, sr, filename: str) -> str:
+    path = Config.MODEL_PATH + filename + '_delta2_mfcc.png'
+    plt.figure(figsize=(25, 10))
+
+    plt.subplot(3, 1, 1)
+
+    librosa.display.specshow(mfcc, sr=sr, x_axis="time", y_axis="mel")
+    plt.colorbar(format=_COLOR_BAR)
+    plt.title(filename)
+    plt.savefig(path)
+
+    return path
+
+
+def _build_delta_mfcc_plot(mfcc, sr, filename: str) -> str:
+    path = Config.MODEL_PATH + filename + '_delta_mfcc.png'
+    plt.figure(figsize=(25, 10))
+
+    plt.subplot(3, 1, 1)
+
+    librosa.display.specshow(mfcc, sr=sr, x_axis="time", y_axis="mel")
+    plt.colorbar(format=_COLOR_BAR)
+    plt.title(filename)
+    plt.savefig(path)
+
+    return path
+
+
+def _build_mfcc_plot(mfcc, sr, filename: str) -> str:
+    path = Config.MODEL_PATH + filename + '_mfcc.png'
+    plt.figure(figsize=(25, 10))
+
+    plt.subplot(3, 1, 1)
+
+    librosa.display.specshow(mfcc, sr=sr, x_axis="time", y_axis="mel")
+    plt.colorbar(format=_COLOR_BAR)
+    plt.title(filename)
+    plt.savefig(path)
+
+    return path
 
 
 def _build_mel_spectrogram_plot(log_mel_spectrogram, sr, filename: str) -> str:
