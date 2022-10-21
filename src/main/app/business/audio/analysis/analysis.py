@@ -52,19 +52,22 @@ def analyse(storage: FileStorage, frame_length: int, hop_length: int) -> AudioAn
 
     ae = _get_amplitude_envelope(audio, frame_length, hop_length)
     zcr = librosa.feature.zero_crossing_rate(audio, frame_length=frame_length, hop_length=hop_length)[0]
+    sc = librosa.feature.spectral_centroid(audio, sr=sr, n_fft=frame_length, hop_length=hop_length)[0]
+    sb = librosa.feature.spectral_bandwidth(audio, sr=sr, n_fft=frame_length, hop_length=hop_length)[0]
     rms = _get_rms(audio, frame_length=frame_length, hop_length=hop_length)
     t = librosa.frames_to_time(range(0, ae.size), hop_length=hop_length)
 
     ft = librosa.stft(audio, n_fft=frame_length, hop_length=hop_length)
     magnitude = np.absolute(ft)
     frequency = np.linspace(0, sr, len(magnitude))
+    ber = _get_ber(sr, 2000, ft)
 
     mfcc = librosa.feature.mfcc(audio, n_mfcc=13, sr=sr)
     delta_mfcc = librosa.feature.delta(mfcc)
     delta2_mfcc = librosa.feature.delta(mfcc, order=2)
 
     return AudioAnalysisResult(
-        time_features_plot_path=_build_time_features_plot(ae, zcr, rms, audio, sr, storage.filename, t),
+        time_features_plot_path=_build_time_features_plot(ae, zcr, rms, ber, sc, sb, audio, sr, storage.filename, t),
         freq_features_plot_path=_build_freq_features_plot(frequency, magnitude, storage.filename),
         spectrogram_plot_path=_build_spectrogram_plot(magnitude, sr, storage.filename, hop_length),
         mel_spectrogram_plot_path=_build_mel_banks_plot(filter_banks, sr, storage.filename),
@@ -177,17 +180,18 @@ def _build_freq_features_plot(frequency, magnitude, filename: str) -> str:
     return path
 
 
-def _build_time_features_plot(ae, zcr, rms, audio, sr, filename: str, t) -> str:
+def _build_time_features_plot(ae, zcr, rms, ber, sc, sb, audio, sr, filename: str, t) -> str:
     path = Config.MODEL_PATH + filename + '_features.png'
     plt.figure(figsize=(15, 17))
 
-    plt.subplot(3, 1, 1)
+    plt.subplot(4, 1, 1)
 
     red_patch = mpl_patches.Patch(color='red', label='Amplitude envelope')
     blue_patch = mpl_patches.Patch(color='blue', label='Waveform')
     green_patch = mpl_patches.Patch(color='green', label='RMS energy')
     yellow_patch = mpl_patches.Patch(color='yellow', label='Zero crossing rate')
-    plt.legend(handles=[red_patch, blue_patch, green_patch, yellow_patch], fontsize=10, shadow=True, framealpha=0.5,
+    plt.legend(handles=[red_patch, blue_patch, green_patch, yellow_patch], fontsize=10, shadow=True,
+               framealpha=0.5,
                edgecolor='b',
                title='Legend')
 
@@ -197,7 +201,18 @@ def _build_time_features_plot(ae, zcr, rms, audio, sr, filename: str, t) -> str:
     plt.plot(t, zcr, color="y")
     plt.title(filename)
     plt.ylim((-1, 1))
+
+    plt.subplot(4, 1, 2)
+    plt.plot(t, ber, color="orange")
+
+    plt.subplot(4, 1, 3)
+    plt.plot(t, sc, color="blue")
+
+    plt.subplot(4, 1, 4)
+    plt.plot(t, sb, color="blue")
+
     plt.savefig(path)
+
     return path
 
 
@@ -215,3 +230,22 @@ def _get_rms(signal, frame_length, hop_length) -> ndarray:
         current_rms = np.sqrt(np.sum(signal[i:i + frame_length] ** 2) / frame_length)
         result.append(current_rms)
     return np.array(result)
+
+
+def _get_ber(sr, split_freq, spectrogram) -> ndarray:
+    freq_range = sr / 2
+    freq_delta_per_bin = freq_range / spectrogram.shape[0]
+    split_freq_bin = int(np.floor(split_freq / freq_delta_per_bin))
+
+    power_spec = np.abs(spectrogram) ** 2
+
+    power_spec = power_spec.T
+    ber = []
+
+    for frequencies_in_frame in power_spec:
+        sum_power_low_frequencies = np.sum(frequencies_in_frame[:split_freq_bin])
+        sum_power_high_frequencies = np.sum(frequencies_in_frame[split_freq_bin:])
+        ber_current_frame = sum_power_low_frequencies / sum_power_high_frequencies
+        ber.append(ber_current_frame)
+
+    return np.array(ber)

@@ -9,10 +9,8 @@ class Config(object):
     DEBUG = False
     MODEL_PATH = "data/models/"
     SERVER_PORT = 5000
-    # Включение защиты против "Cross-site Request Forgery (CSRF)"
     CSRF_ENABLED = True
-    # Случайный ключ, которые будет исползоваться для подписи
-    # данных, например cookies.
+    # Случайный ключ, которые будет исползоваться для подписи данных, например cookies.
     SECRET_KEY = 'YOUR_RANDOM_SECRET_KEY'
 
     BASE_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -23,6 +21,5 @@ class Config(object):
     # operations using the other.
     THREADS_PER_PAGE = 2
 
-    # Use a secure, unique and absolutely secret key for
-    # signing the data.
+    # Use a secure, unique and absolutely secret key for signing the data.
     CSRF_SESSION_KEY = "secret"
