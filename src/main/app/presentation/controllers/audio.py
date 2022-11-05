@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request
 
 from business.audio.analysis.analysis import analyse
 from business.audio.classification.classification import predict
+from business.audio.generation.generation import generate
 
 audio_blueprint = Blueprint('audio_blueprint', __name__)
 
@@ -18,3 +19,8 @@ def analyse_audio():
 @audio_blueprint.route('/audio/classify', methods=['POST'])
 def classify():
     return jsonify(result=predict(request.files.get('audio', '')).serialize())
+
+
+@audio_blueprint.route('/audio/generate', methods=['POST'])
+def classify():
+    return jsonify(result=generate(request.files.get('audio', '')).serialize())
