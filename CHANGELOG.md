@@ -1,3 +1,9 @@
+### 1.2.1
+#### Stories:
+`ML-17`, `ML-18`, `ML-19`
+#### Features:
+- Pipeline tweaks
+
 ### 1.2.0
 #### Stories:
 `ML-15`
