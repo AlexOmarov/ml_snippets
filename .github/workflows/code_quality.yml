@@ -52,7 +52,9 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
 
       - name: Conda activation
-        run: conda activate ml_snippets_service
+        run: |
+          conda init bash
+          conda activate ml_snippets_service
 
       - name: Test with pytest
         run: |
