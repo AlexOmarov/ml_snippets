@@ -59,5 +59,4 @@ jobs:
           port: ${{ secrets.DEPLOY_PORT }}
           source: "docker-compose.yml"
           target: "~/"
-          script: |
-            sudo docker compose -f ~/docker-compose.yml run
+          script: sudo docker-compose -f ~/docker-compose.yml
