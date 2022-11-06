@@ -18,7 +18,7 @@ defaults:
     working-directory: .
 
 env:
-  CACHE_NUMBER: 3  # increase to reset cache manually
+  CACHE_NUMBER: 4  # increase to reset cache manually
 
 
 jobs:
