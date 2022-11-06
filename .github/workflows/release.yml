@@ -15,7 +15,6 @@ defaults:
     shell: bash
     working-directory: .
 
-
 jobs:
   release:
     name: Release new version of service
@@ -57,4 +56,6 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_KEY }}
           port: ${{ secrets.DEPLOY_PORT }}
-          script: sudo docker-compose -f ~/docker-compose.yml up
+          script: |
+            sudo docker-compose -f ~/docker-compose-ml-snippets-service.yml up -d --force-recreate
+            docker system prune
