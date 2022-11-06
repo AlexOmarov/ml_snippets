@@ -6,6 +6,4 @@ build-backend = "hatchling.build"
 name = "src"
 
 [tool.pytest.ini_options]
-pythonpath = [
-  ".", "src/main/app"
-]
+pythonpath = [".", "src/main/app"]

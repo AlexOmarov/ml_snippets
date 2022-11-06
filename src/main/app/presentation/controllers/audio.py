@@ -22,5 +22,5 @@ def classify():
 
 
 @audio_blueprint.route('/audio/generate', methods=['POST'])
-def classify():
+def generate_audio():
     return jsonify(result=generate(request.files.get('audio', '')).serialize())

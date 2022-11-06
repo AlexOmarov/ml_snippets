@@ -3,8 +3,8 @@ name: "Code quality workflow"
 on:
   push:
     branches:
+      - dev
       - master
-      - release
 
 permissions: read-all
 
@@ -18,7 +18,7 @@ defaults:
     working-directory: .
 
 env:
-  CACHE_NUMBER: 1  # increase to reset cache manually
+  CACHE_NUMBER: 2  # increase to reset cache manually
 
 
 jobs:
@@ -43,13 +43,13 @@ jobs:
 
       - uses: actions/cache@v2
         with:
-          path: /usr/share/miniconda3/envs/base
+          path: /usr/share/miniconda3/envs/ml_snippets_service
           key: ubuntu-conda-${{ env.CACHE_NUMBER }}
         id: cache
 
       - name: Install deps
-        run: |
-          conda env update --file unix_environment.yaml --name base
+        run: conda env update --file unix_environment.yaml --name ml_snippets_service
+        if: steps.cache.outputs.cache-hit != 'true'
 
       - name: Test with pytest
         run: |

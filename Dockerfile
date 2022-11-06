@@ -3,6 +3,7 @@ FROM nvidia/cuda:11.7.1-base-ubuntu20.04
 WORKDIR /ml_snippets_service
 ADD ./src/main /ml_snippets_service/src/main
 ADD unix_environment.yaml /ml_snippets_service/unix_environment.yaml
+ADD pyproject.toml /ml_snippets_service/pyproject.toml
 
 # Make required directories
 RUN mkdir -p /ml_snippets_service/data/logs
@@ -18,6 +19,7 @@ RUN wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -
 	rm Miniconda.sh
 
 ENV PATH /opt/conda/bin:$PATH
+ENV PYTHONPATH /ml_snippets_service:$PYTHONPATH
 
 RUN apt-get update -y && apt-get install -y --no-install-recommends build-essential gcc libsndfile1
 

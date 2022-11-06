@@ -2,7 +2,7 @@ version: '3'
 
 services:
   ml_snippets_service:
-    build: .
+    image: decentboat/ml_snippets_service:latest
     container_name: ml_snippets_service
     ports:
       - "5000:5000"

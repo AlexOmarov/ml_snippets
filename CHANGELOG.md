@@ -1,3 +1,10 @@
+### 1.1.0
+#### Stories:
+`ML-13`
+#### Features:
+- Pipeline management
+- Docker image release
+
 ### 1.0.2
 #### Stories:
 `ML-8`
