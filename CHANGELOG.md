@@ -1,3 +1,9 @@
+### 1.1.1
+#### Stories:
+`ML-14`
+#### Features:
+- Pytest coverage parsing in Sonarcloud
+
 ### 1.1.0
 #### Stories:
 `ML-13`

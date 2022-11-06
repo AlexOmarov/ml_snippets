@@ -1,2 +1,7 @@
+[coverage:run]
+relative_files = True
+branch = True
+source = src/
+
 [run]
 omit = *test*
