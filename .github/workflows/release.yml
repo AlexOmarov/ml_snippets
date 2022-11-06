@@ -7,7 +7,7 @@ on:
 permissions: read-all
 
 concurrency:
-  group: code_quality
+  group: release
   cancel-in-progress: true
 
 defaults:
@@ -17,8 +17,8 @@ defaults:
 
 
 jobs:
-  push_to_registry:
-    name: Push Docker image to Docker Hub
+  release:
+    name: Release new version of service
     runs-on: ubuntu-latest
     steps:
 
@@ -49,3 +49,12 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Log in to server
+        uses:
+        with:
+          username: ${{ secrets.DEPLOY_USERNAME }}
+          key: ${{ secrets.DEPLOY_KEY }}
+
+      - name: Launch docker compose
+        uses:

@@ -40,20 +40,21 @@ jobs:
           echo $CONDA/bin >> $GITHUB_PATH
           sudo apt-get update -y && sudo apt-get install -y --no-install-recommends build-essential gcc libsndfile1
           sudo apt-get upgrade libstdc++6
+          sudo conda update -n base -c defaults conda
 
       - uses: actions/cache@v2
         with:
-          path: /usr/share/miniconda/envs/ml_snippets_service
+          path: /usr/share/miniconda/envs/base
           key: ubuntu-conda-${{ env.CACHE_NUMBER }}
         id: cache
 
       - name: Install deps
-        run: conda env update --file unix_environment.yaml --name ml_snippets_service
+        run: conda env update --file unix_environment.yaml --name base
         if: steps.cache.outputs.cache-hit != 'true'
 
       - name: Test with pytest
         run: |
-          /usr/share/miniconda/envs/ml_snippets_service/python -m pytest -s -v  src/test/app --cov-report xml:coverage.xml --cov --cov-report term
+          python -m pytest -s -v  src/test/app --cov-report xml:coverage.xml --cov --cov-report term
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
