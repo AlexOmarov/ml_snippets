@@ -18,7 +18,7 @@ defaults:
     working-directory: .
 
 env:
-  CACHE_NUMBER: 7  # increase to reset cache manually
+  CACHE_NUMBER: 8  # increase to reset cache manually
 
 
 jobs:
@@ -41,11 +41,10 @@ jobs:
           sudo apt-get update -y && sudo apt-get install -y --no-install-recommends build-essential gcc libsndfile1
           sudo apt-get upgrade libstdc++6
           sudo conda update -n base -c defaults conda
-          find /usr/share/miniconda
 
       - uses: actions/cache@v3
         with:
-          path: /usr/share/miniconda/base
+          path: /usr/share/miniconda/envs
           key: ubuntu-conda-${{ env.CACHE_NUMBER }}
         id: cache
 
