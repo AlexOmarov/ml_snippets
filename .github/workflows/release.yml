@@ -2,7 +2,7 @@ name: "Release workflow"
 
 on:
   release:
-    types: [published]
+    types: [ published ]
 
 permissions: read-all
 
@@ -50,11 +50,14 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-      - name: Log in to server
-        uses:
+      - name: Deploy to server
+        uses: appleboy/ssh-action@master
         with:
-          username: ${{ secrets.DEPLOY_USERNAME }}
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_KEY }}
-
-      - name: Launch docker compose
-        uses:
+          port: ${{ secrets.DEPLOY_PORT }}
+          source: "docker-compose.yml"
+          target: "~/"
+          script: |
+            sudo docker compose -f ~/docker-compose.yml run
