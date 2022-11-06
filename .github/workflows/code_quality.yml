@@ -51,14 +51,9 @@ jobs:
         run: conda env update --file unix_environment.yaml --name ml_snippets_service
         if: steps.cache.outputs.cache-hit != 'true'
 
-      - name: Conda activation
-        run: |
-          conda init bash
-          conda activate ml_snippets_service
-
       - name: Test with pytest
         run: |
-          python -m pytest -s -v  src/test/app --cov-report xml:coverage.xml --cov --cov-report term
+          /usr/share/miniconda/envs/ml_snippets_service/python -m pytest -s -v  src/test/app --cov-report xml:coverage.xml --cov --cov-report term
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
