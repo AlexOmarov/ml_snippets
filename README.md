@@ -2,11 +2,11 @@
 
 Service for testing ML samples, mathematical conceptions, writing PoC solutions.
 
+[![Python version](https://img.shields.io/static/v1?label=Python&message=3.9&color=blue)](https://sonarcloud.io/summary/new_code?id=AlexOmarov_ml_snippets_service)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=AlexOmarov_ml_snippets_service&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=AlexOmarov_ml_snippets_service)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=AlexOmarov_ml_snippets_service&metric=coverage)](https://sonarcloud.io/summary/new_code?id=AlexOmarov_ml_snippets_service)
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=AlexOmarov_ml_snippets_service&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=AlexOmarov_ml_snippets_service)
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=AlexOmarov_ml_snippets_service&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=AlexOmarov_ml_snippets_service)
-[![Python version](https://img.shields.io/static/v1?label=Python&message=3.9&color=blue)](https://sonarcloud.io/summary/new_code?id=AlexOmarov_ml_snippets_service)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=AlexOmarov_ml_snippets_service&metric=coverage)](https://sonarcloud.io/summary/new_code?id=AlexOmarov_ml_snippets_service)
 
 ## Table of Contents
 
