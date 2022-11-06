@@ -18,7 +18,7 @@ defaults:
     working-directory: .
 
 env:
-  CACHE_NUMBER: 5  # increase to reset cache manually
+  CACHE_NUMBER: 6  # increase to reset cache manually
 
 
 jobs:
@@ -44,7 +44,7 @@ jobs:
 
       - uses: actions/cache@v3
         with:
-          path: /usr/share/miniconda
+          path: /usr/share/miniconda/envs
           key: ubuntu-conda-${{ env.CACHE_NUMBER }}
         id: cache
 
