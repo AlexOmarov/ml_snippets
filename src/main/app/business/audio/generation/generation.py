@@ -36,7 +36,7 @@ def generate(audio: FileStorage) -> AudioGenerationResult:
     :param audio: Storage with audio data
     """
     print(audio)
-    return AudioGenerationResult("test2")
+    return AudioGenerationResult("test23")
 
 
 def train(metric: str) -> TrainResult:
