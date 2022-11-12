@@ -6,7 +6,7 @@ from flask import Flask
 from flask_wtf.csrf import CSRFProtect
 
 from business.util.ml_tensorboard_server.CustomTensorboardServer import CustomTensorboardServer
-from presentation.controllers import mnist, audio
+from presentation.controllers import mnist, audio, theory
 from src.main.resource.config import Config
 
 app = Flask(__name__)
@@ -18,7 +18,9 @@ def get_app():
     app.config.from_object(Config)
     csrf = CSRFProtect()
     csrf.init_app(app)
+
     app.register_blueprint(csrf.exempt(mnist.mnist_blueprint))
+    app.register_blueprint(csrf.exempt(theory.theory_blueprint))
     app.register_blueprint(csrf.exempt(audio.audio_blueprint))
 
     program = tb.program.TensorBoard(server_class=CustomTensorboardServer)
