@@ -15,7 +15,7 @@ class CustomTensorboardServer(tb.program.TensorBoardServer):
         serving.run_simple('0.0.0.0', Config.SERVER_PORT, app.app)
 
     def get_url(self):
-        return "http://%s:%s" % ('0.0.0.0', Config.SERVER_PORT)
+        return Config.SERVER_PROTOCOL + "%s:%s" % ('0.0.0.0', Config.SERVER_PORT)
 
     def print_serving_message(self):
         pass  # Werkzeug's `serving.run_simple` handles this

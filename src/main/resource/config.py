@@ -9,6 +9,7 @@ class Config(object):
     DEBUG = False
     MODEL_PATH = "data/models/"
     SERVER_PORT = 5000
+    SERVER_PROTOCOL = "http://"
     CSRF_ENABLED = True
     # Случайный ключ, которые будет исползоваться для подписи данных, например cookies.
     SECRET_KEY = 'YOUR_RANDOM_SECRET_KEY'
