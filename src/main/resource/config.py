@@ -8,6 +8,7 @@ class Config(object):
     # - 500 ошибку без какой либо дополнительной информации.
     DEBUG = False
     MODEL_PATH = "data/models/"
+    VOICE_PATH = "data/wavs/"
     SERVER_PORT = 5000
     CSRF_ENABLED = True
     # Случайный ключ, которые будет исползоваться для подписи данных, например cookies.
