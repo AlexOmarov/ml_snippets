@@ -1,3 +1,10 @@
+### 1.2.2
+#### Stories:
+`ML-21`, `ML-22`
+#### Features:
+- Speech generation by pretrained voice
+- Extracting features from ogg audio files
+
 ### 1.2.1
 #### Stories:
 `ML-17`, `ML-18`, `ML-19`
