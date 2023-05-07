@@ -13,6 +13,7 @@ from keras.models import Model
 from keras.models import load_model
 from keras.optimizers import Adam
 from phonemizer import phonemize
+from scipy.io import wavfile
 
 from src.main.resource.config import Config
 
@@ -56,6 +57,8 @@ def train(words_file: str = Config.WORDS_FILE_PATH,
 
 def generate(text: str, model_path: str = Config.AUDIO_MODEL_PATH,
              num_mels: int = Config.AUDIO_GENERATION_NUM_MELS,
+             words_file: str = Config.WORDS_FILE_PATH,
+             audio_files_dir: str = Config.AUDIO_FILES_DIR_PATH,
              phonemize_language: str = Config.PHONEMIZE_LANGUAGE,
              phonemize_backend=Config.PHONEMIZE_BACKEND,
              phonemes_file: str = Config.PHONEMES_FILE_PATH,
@@ -78,10 +81,18 @@ def generate(text: str, model_path: str = Config.AUDIO_MODEL_PATH,
 
     processed = ''.join(all_phonemes)
 
+    audio_dataset, text_dataset, max_seq_length = _get_datasets(words_file, phonemes_file, audio_files_dir,
+                                                                tensor_length)
+
+    # Here wrong first dimension, then need to add voice file
     input_for_model = _get_tensor_for_phoneme_sentence(phonemes, processed, desired_length, tensor_length)
+    text_array = np.zeros((1, tensor_length, max_seq_length))
+    for i in range(tensor_length):
+        for j in range(max_seq_length):
+            text_array[0][i][j] = input_for_model[i][j]
 
     # Generate speech using model and input_for_model
-    output_tensor = model.predict(input_for_model)
+    output_tensor = model.predict([text_array, np.expand_dims(audio_dataset[0], axis=0)])
 
     # Post-process the output tensor
     mel_spec = output_tensor[0]
@@ -93,6 +104,9 @@ def generate(text: str, model_path: str = Config.AUDIO_MODEL_PATH,
 
     # Generate speech from the post-processed tensor
     waveform = librosa.feature.inverse.mel_to_audio(mel_spec, sr=Config.AUDIO_GENERATION_SAMPLE_RATE)
+    waveform = (waveform * 32767).astype('int16')
+
+    wavfile.write(Config.AUDIO_GENERATION_OUTPUT_FILE_PATH, Config.AUDIO_GENERATION_SAMPLE_RATE, waveform)
     return waveform
 
 

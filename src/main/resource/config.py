@@ -27,6 +27,7 @@ class Config(object):
     AUDIO_GENERATION_NUM_MELS = 256  # number of mel spectrogram bins
     AUDIO_GENERATION_VOCAB_SIZE = 80
     AUDIO_GENERATION_CHECKPOINT_DIR_PATH = os.path.join(ROOT_DIR, "data/checkpoints/")
+    AUDIO_GENERATION_OUTPUT_FILE_PATH = os.path.join(ROOT_DIR, "data/output.wav")
 
     SERVER_PORT = 5000
     CSRF_ENABLED = True
