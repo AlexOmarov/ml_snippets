@@ -89,7 +89,7 @@ def generate(text: str, model_path: str = Config.AUDIO_MODEL_PATH,
     mel_spec = np.squeeze(mel_spec, axis=0)
     linear_spec = np.squeeze(linear_spec, axis=0)
     mel_spec = librosa.db_to_amplitude(mel_spec)
-    linear_spec = librosa.db_to_amplitude(linear_spec)
+    librosa.db_to_amplitude(linear_spec)
 
     # Generate speech from the post-processed tensor
     waveform = librosa.feature.inverse.mel_to_audio(mel_spec, sr=Config.AUDIO_GENERATION_SAMPLE_RATE)
@@ -101,7 +101,7 @@ def _get_model(tensor_length, encoder_layers, max_seq_length, decoder_layers,
     # Входные данные
     inputs = Input(shape=(tensor_length, max_seq_length), name='inputs')
     text_inputs = Input(shape=(tensor_length, max_seq_length), name='text_inputs')
-    # Энкодер текста
+    # Encoder текста
     encoder = Bidirectional(LSTM(units=tensor_length, return_sequences=True))(text_inputs)
     for _ in range(encoder_layers - 1):
         encoder = Bidirectional(LSTM(units=tensor_length, return_sequences=True))(encoder)
