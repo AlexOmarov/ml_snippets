@@ -1,78 +1,129 @@
+import ast
 import os
 import re
 
 import librosa
 import numpy as np
+import pymorphy2
 import tensorflow as tf
-from keras.layers import Embedding, Concatenate, Softmax, Dot
-from keras.layers import Input, Conv1D, Dense, Dropout, LSTM, Bidirectional
+from keras.layers import Dot, Activation
+from keras.layers import Input, Conv1D, Dense, LSTM, Bidirectional
+from keras.losses import MeanSquaredError
 from keras.models import Model
+from keras.models import load_model
+from keras.optimizers import Adam
+from phonemizer import phonemize
 
 from src.main.resource.config import Config
+
+words_regex = r'\b\w+\b'
 
 
 def train(words_file: str = Config.WORDS_FILE_PATH,
           audio_files_dir: str = Config.AUDIO_FILES_DIR_PATH,
+          batch_size: str = Config.AUDIO_GENERATION_BATCH_SIZE,
           phonemes_file: str = Config.PHONEMES_FILE_PATH,
           learning_rate: str = Config.AUDIO_GENERATION_LEARNING_RATE,
           checkpoint_dir_path: str = Config.AUDIO_GENERATION_CHECKPOINT_DIR_PATH,
           num_epochs: str = Config.AUDIO_GENERATION_NUM_EPOCHS,
           num_mels: int = Config.AUDIO_GENERATION_NUM_MELS,
+          model_path: str = Config.AUDIO_MODEL_PATH,
           vocab_size: int = Config.AUDIO_GENERATION_VOCAB_SIZE):
     tensor_length = max(vocab_size, num_mels)
 
-    audio_dataset, text_dataset = _get_datasets(words_file, phonemes_file, audio_files_dir, tensor_length)
+    audio_dataset, text_dataset, max_seq_length = _get_datasets(words_file, phonemes_file, audio_files_dir,
+                                                                tensor_length)
+    encoder_layers = 3
+    decoder_layers = 2
+    post_kernel_size = 5
 
-    dataset = tf.data.Dataset.zip((audio_dataset, text_dataset)).map(
-        lambda audio, text: ({'input_1': audio, 'input_2': text}))
+    # Создание модели
+    model = _get_model(tensor_length, encoder_layers, max_seq_length, decoder_layers, post_kernel_size)
 
-    model = _get_model(tensor_length)
-
-    optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
-    model.compile(optimizer=optimizer, loss='categorical_crossentropy')
+    # Компиляция модели
+    model.compile(optimizer=Adam(learning_rate=learning_rate), loss=[MeanSquaredError(), MeanSquaredError()])
 
     checkpoint_name = 'model.{epoch:02d}.h5'
     checkpoint = tf.keras.callbacks.ModelCheckpoint(filepath=os.path.join(checkpoint_dir_path, checkpoint_name))
 
-    # dataset = dataset.batch(batch_size)
-    model.fit(dataset, epochs=num_epochs, callbacks=[checkpoint])
+    # Обучение модели
+    model.fit(x=[text_dataset, audio_dataset], y=[audio_dataset, audio_dataset], batch_size=batch_size,
+              epochs=num_epochs,
+              validation_split=0.1, callbacks=[checkpoint])
+
+    model.save(model_path)
 
 
-def generate():
-    print()
+def generate(text: str, model_path: str = Config.AUDIO_MODEL_PATH,
+             num_mels: int = Config.AUDIO_GENERATION_NUM_MELS,
+             phonemize_language: str = Config.PHONEMIZE_LANGUAGE,
+             phonemize_backend=Config.PHONEMIZE_BACKEND,
+             phonemes_file: str = Config.PHONEMES_FILE_PATH,
+             vocab_size: int = Config.AUDIO_GENERATION_VOCAB_SIZE):
+    model = load_model(model_path)
+    input_shape = model.layers[0].input_shape
+    desired_length = input_shape[-1][-1]
+    morph = pymorphy2.MorphAnalyzer()
+    tensor_length = max(vocab_size, num_mels)
+    with open(phonemes_file, 'r', encoding='utf-8') as f:
+        phonemes = [ast.literal_eval(line) for line in f][0]
+
+    words = re.findall(words_regex, text)
+    all_phonemes = []
+
+    for word in words:
+        base_form = morph.parse(word)[0].normal_form
+        phonemes = phonemize(base_form, language=phonemize_language, backend=phonemize_backend)
+        all_phonemes.append(phonemes)
+
+    processed = ''.join(all_phonemes)
+
+    input_for_model = _get_tensor_for_phoneme_sentence(phonemes, processed, desired_length, tensor_length)
+
+    # Generate speech using model and input_for_model
+    output_tensor = model.predict(input_for_model)
+
+    # Post-process the output tensor
+    mel_spec = output_tensor[0]
+    linear_spec = output_tensor[1]
+    mel_spec = np.squeeze(mel_spec, axis=0)
+    linear_spec = np.squeeze(linear_spec, axis=0)
+    mel_spec = librosa.db_to_amplitude(mel_spec)
+    linear_spec = librosa.db_to_amplitude(linear_spec)
+
+    # Generate speech from the post-processed tensor
+    waveform = librosa.feature.inverse.mel_to_audio(mel_spec, sr=Config.AUDIO_GENERATION_SAMPLE_RATE)
+    return waveform
 
 
-def _get_model(tensor_length) -> tf.keras.models.Model:
-    # Encoder
-    encoder_input = Input(shape=(None, 80))  # shape: (batch_size, time_steps, num_mels)
-    encoder_conv1 = Conv1D(filters=512, kernel_size=5, padding='same', activation='relu')(encoder_input)
-    encoder_conv2 = Conv1D(filters=512, kernel_size=5, padding='same', activation='relu')(encoder_conv1)
-    encoder_conv3 = Conv1D(filters=512, kernel_size=5, padding='same', activation='relu')(encoder_conv2)
-
-    encoder_lstm1 = Bidirectional(LSTM(units=256, return_sequences=True))(encoder_conv3)
-    encoder_lstm2 = Bidirectional(LSTM(units=256, return_sequences=True))(encoder_lstm1)
-
-    # Decoder
-    decoder_input = Input(shape=(None,))
-    decoder_embedding = Embedding(input_dim=tensor_length, output_dim=256)(decoder_input)
-
-    decoder_lstm1 = LSTM(units=1024, return_sequences=True)(decoder_embedding)
-    decoder_lstm2 = LSTM(units=1024, return_sequences=True)(decoder_lstm1)
-
-    # Attention
-    attention_hidden = Dense(units=512, activation='tanh')(encoder_lstm2)
-    attention_scores = Dot(axes=[2, 1])([attention_hidden, decoder_lstm2])
-    attention_weights = Softmax()(attention_scores)
-    context_vector = Dot(axes=[2, 1])([encoder_lstm2, attention_weights])
-    attention_combined = Concatenate(axis=-1)([decoder_lstm2, context_vector])
-
-    attention_dense = Dense(units=256, activation='tanh')(attention_combined)
-    attention_dropout = Dropout(rate=0.1)(attention_dense)
-    decoder_output = Dense(units=tensor_length, activation='softmax')(attention_dropout)
-
-    # Model
-    model = Model([encoder_input, decoder_input], decoder_output)
-
+def _get_model(tensor_length, encoder_layers, max_seq_length, decoder_layers,
+               post_kernel_size) -> tf.keras.models.Model:
+    # Входные данные
+    inputs = Input(shape=(tensor_length, max_seq_length), name='inputs')
+    text_inputs = Input(shape=(tensor_length, max_seq_length), name='text_inputs')
+    # Энкодер текста
+    encoder = Bidirectional(LSTM(units=tensor_length, return_sequences=True))(text_inputs)
+    for _ in range(encoder_layers - 1):
+        encoder = Bidirectional(LSTM(units=tensor_length, return_sequences=True))(encoder)
+    # Слой внимания
+    attention_rnn = LSTM(units=max_seq_length, return_sequences=True, name='attention_rnn')(encoder)
+    attention = Dense(units=max_seq_length, activation='tanh', name='attention')(attention_rnn)
+    attention = Dot(axes=[2, 2], name='attention_dot')([attention, inputs])
+    attention = Activation('softmax', name='attention_softmax')(attention)
+    context = Dot(axes=[1, 1], name='context_dot')([attention, encoder])
+    # Декодер
+    decoder = LSTM(units=max_seq_length, return_sequences=True)(context)
+    for _ in range(decoder_layers - 1):
+        decoder = LSTM(units=max_seq_length, return_sequences=True)(decoder)
+    decoder_output = Dense(units=max_seq_length)(decoder)
+    # Пост-обработка
+    postnet = Conv1D(filters=max_seq_length, kernel_size=post_kernel_size, padding='same')(decoder)
+    postnet = Activation('tanh')(postnet)
+    postnet = Conv1D(filters=max_seq_length, kernel_size=post_kernel_size, padding='same')(postnet)
+    postnet_output = Activation('tanh')(postnet)
+    # Модель
+    model = Model(inputs=[inputs, text_inputs], outputs=[decoder_output, postnet_output])
+    model.summary()
     return model
 
 
@@ -83,11 +134,20 @@ def _get_datasets(words_file: str, phonemes_file: str, audio_files_dir: str, ten
 
     normalized_audio = _normalize_audio(processed_audio, max_seq_length)
     normalized_text = _normalize_text(phonemes_file, processed_text, max_seq_length, tensor_length)
+    audio_array = np.zeros((len(normalized_audio), tensor_length, max_seq_length))
+    text_array = np.zeros((len(normalized_text), tensor_length, max_seq_length))
 
-    audio_dataset = tf.data.Dataset.from_tensor_slices(normalized_audio)
-    text_dataset = tf.data.Dataset.from_tensor_slices(normalized_text)
+    for k in range(len(normalized_audio)):
+        for i in range(tensor_length):
+            for j in range(max_seq_length):
+                audio_array[k][i][j] = normalized_audio[k][i][j]
 
-    return audio_dataset, text_dataset
+    for k in range(len(normalized_text)):
+        for i in range(tensor_length):
+            for j in range(max_seq_length):
+                text_array[k][i][j] = normalized_text[k][i][j]
+
+    return audio_array, text_array, max_seq_length
 
 
 def _normalize_text(phonemes_file_path, phoneme_sentences, max_seq_length, tensor_length):
@@ -113,7 +173,7 @@ def _get_vector_max_length(processed_audio, processed_text) -> int:
         if audio.shape[1] > result:
             result = audio.shape[1]
     for text in processed_text:
-        split = re.findall(r'\b\w+\b', text)
+        split = re.findall(words_regex, text)
         if len(split) > result:
             result = len(split)
     return result
@@ -129,9 +189,8 @@ def _get_processed_data(words_file, audio_files_dir, tensor_length):
     return processed_audio, transcripts, processed_text
 
 
-def _form_mel_spec_db(audio_path, num_mels, sampling_rate=22050, duration=4):
+def _form_mel_spec_db(audio_path, num_mels, sampling_rate=Config.AUDIO_GENERATION_SAMPLE_RATE, duration=4):
     # Load the audio file
-    print("Got preprocess_audio for " + audio_path)
     audio_data, sr = librosa.load(audio_path, sr=sampling_rate, duration=duration, mono=True)
 
     # Normalize the audio
@@ -152,7 +211,7 @@ def _form_mel_spec_db(audio_path, num_mels, sampling_rate=22050, duration=4):
 
 
 def _get_tensor_for_phoneme_sentence(one_hot, processed_text, desired_length, tensor_length):
-    words = re.findall(r'\b\w+\b', processed_text)
+    words = re.findall(words_regex, processed_text)
     result = []
     for phoneme in one_hot:
         vector = []
@@ -170,4 +229,4 @@ def _get_tensor_for_phoneme_sentence(one_hot, processed_text, desired_length, te
     return result
 
 
-train()
+generate("Привет!")
