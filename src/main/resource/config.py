@@ -8,14 +8,16 @@ class Config(object):
     # - 500 ошибку без какой-либо дополнительной информации.
     DEBUG = False
     ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
     MODEL_PATH = "data/models/"
     AUDIO_MODEL_PATH = os.path.join(ROOT_DIR, "data/models/audio_model.h5")
-    AUDIO_FILES_DIR_PATH = os.path.join(ROOT_DIR, "data/wavs/")
-    AUDIO_CONVERSION_INPUT_DIR = os.path.join(ROOT_DIR, "data/ogg/")
-    AUDIO_CONVERSION_OUTPUT_EXT = "wav"
-    WORDS_FILE_PATH = os.path.join(ROOT_DIR, "data/words.txt")
-    WORDS_FILE_ENCODING = "utf-8"
+    AUDIO_FILES_DIR_PATH = "D:/audio_dataset/audio_files"
+    AUDIO_CONVERSION_INPUT_DIR_PATH = os.path.join(ROOT_DIR, "data/ogg/")
+    METADATA_FILE_PATH = "D:/audio_dataset/df.csv"
     PHONEMES_FILE_PATH = os.path.join(ROOT_DIR, "data/phonemes.txt")
+
+    AUDIO_CONVERSION_OUTPUT_EXT = "wav"
+    WORDS_FILE_ENCODING = "utf-8"
     RECOGNIZE_LANGUAGE = "ru-RU"
     PHONEMIZE_LANGUAGE = "ru"
     PHONEMIZE_BACKEND = "espeak"  # Install ESPEAK NG as msi from github releases

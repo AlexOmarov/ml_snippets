@@ -8,7 +8,7 @@ from phonemizer import phonemize
 from src.main.resource.config import Config
 
 
-def write_audio_text_info(words_file_path: str = Config.WORDS_FILE_PATH,
+def write_audio_text_info(words_file_path: str = Config.METADATA_FILE_PATH,
                           audio_files_dir_path: str = Config.AUDIO_FILES_DIR_PATH,
                           recognize_language: str = Config.RECOGNIZE_LANGUAGE,
                           phonemize_language: str = Config.PHONEMIZE_LANGUAGE,
@@ -22,7 +22,7 @@ def write_audio_text_info(words_file_path: str = Config.WORDS_FILE_PATH,
             text = _recognize_text(os.path.join(audio_files_dir_path, file_name), recognizer, recognize_language)
             phonemes = _phonemize_text(text, morph, phonemize_language, phonemize_backend)
             words_file.write(f'{file_name}|{text}|{phonemes}\n')
-            print("Ended up for " + file_name + " with text " + text + " and phonemes " + phonemes)
+            print("Ended up for " + file_name)
 
 
 def _recognize_text(file_path, recognizer, language) -> str:

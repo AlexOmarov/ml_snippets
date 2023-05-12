@@ -7,7 +7,7 @@ from src.main.resource.config import Config
 
 
 def convert(make_conversion: bool,
-            input_dir: str = Config.AUDIO_CONVERSION_INPUT_DIR,
+            input_dir: str = Config.AUDIO_CONVERSION_INPUT_DIR_PATH,
             output_ext: str = Config.AUDIO_CONVERSION_OUTPUT_EXT,
             output_dir: str = Config.AUDIO_FILES_DIR_PATH):
     if not os.path.exists(output_dir):
