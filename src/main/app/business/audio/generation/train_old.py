@@ -15,43 +15,6 @@ from business.audio.generation.dto.training_setting import TrainingSetting
 from business.audio.generation.dto.training_unit import TrainingUnit
 from src.main.resource.config import Config
 
-
-def train(setting: TrainingSetting) -> str:
-    normalized_dataset = _get_dataset(_get_training_units(setting))
-
-    model = _get_model(setting.hyper_params_info)
-
-    # Обучение модели
-    model.fit(
-        x=[normalized_dataset.training_data, normalized_dataset.training_responses],
-        y=[normalized_dataset.test_data, normalized_dataset.test_responses],
-        batch_size=setting.hyper_params_info.batch_size,
-        epochs=setting.hyper_params_info.num_epochs,
-        validation_split=0.2,
-        callbacks=[ModelCheckpoint(filepath=setting.paths_info.checkpoint_path_template)]
-    )
-
-    return model.save(setting.paths_info.model_dir_path)
-
-
-def _get_training_units(setting: TrainingSetting) -> [TrainingUnit]:
-    return []
-
-
-def _get_dataset(units: [TrainingUnit]) -> TrainingDataset:
-    dataset = _form_dataset(units)
-    normalized_dataset = _normalize_dataset(dataset)
-    return normalized_dataset
-
-
-def _form_dataset(units: [TrainingUnit]) -> TrainingDataset:
-    return TrainingDataset()
-
-
-def _normalize_dataset(dataset: TrainingDataset) -> TrainingDataset:
-    return dataset
-
-
 def _get_model(hyper_params: TrainingHyperParamsInfo) -> tf.keras.models.Model:
     # Входные данные
     inputs = Input(shape=(tensor_length, max_seq_length), name='inputs')

@@ -74,6 +74,11 @@ def _get_dataset(units: [TrainingUnit]) -> TrainingDataset:
 
 
 def _get_training_units(setting: TrainingSetting) -> [TrainingUnit]:
+    with open(setting.paths_info.metadata_file_path, 'r', encoding='utf-8') as f:
+        data = [line.strip().split(',') for line in f]
+
+    audio_files_names, transcripts, processed_text = zip(*data)
+    audio_files_names = [setting.paths_info.audio_files_dir_path + s for s in audio_files_names]
     return []
 
 
