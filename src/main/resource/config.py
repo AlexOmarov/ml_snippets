@@ -1,5 +1,7 @@
 import os
 
+from keras.losses import MeanSquaredError
+
 
 class Config(object):
     # Определяет, включен ли режим отладки
@@ -9,7 +11,7 @@ class Config(object):
     DEBUG = False
     ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-    MODEL_PATH = "data/models/"
+    MODEL_DIR_PATH = "data/models/"
     AUDIO_MODEL_PATH = os.path.join(ROOT_DIR, "data/models/audio_model.h5")
     AUDIO_FILES_DIR_PATH = "D:/audio_dataset/audio_files"
     AUDIO_CONVERSION_INPUT_DIR_PATH = os.path.join(ROOT_DIR, "data/ogg/")
@@ -29,9 +31,17 @@ class Config(object):
     AUDIO_GENERATION_SAMPLE_RATE = 22050
     AUDIO_GENERATION_BATCH_SIZE = 16
     AUDIO_GENERATION_NUM_EPOCHS = 50
+    AUDIO_GENERATION_ENCODER_LAYERS = 3
+    AUDIO_GENERATION_DECODER_LAYERS = 3
+    AUDIO_GENERATION_POST_KERNEL_SIZE = 4
+    AUDIO_GENERATION_VALIDATION_SPLIT = 0.2
+    AUDIO_GENERATION_MODEL_NAME = "RUSSIAN_TTS_MODEL"
+    AUDIO_GENERATION_LOSS_FUN = MeanSquaredError()
     AUDIO_GENERATION_NUM_MELS = 256  # number of mel spectrogram bins
     AUDIO_GENERATION_VOCAB_SIZE = 80
     AUDIO_GENERATION_CHECKPOINT_DIR_PATH = os.path.join(ROOT_DIR, "data/checkpoints/")
+    AUDIO_GENERATION_CHECKPOINT_FILE_PATH_TEMPLATE = os.path.join(AUDIO_GENERATION_CHECKPOINT_DIR_PATH,
+                                                                  AUDIO_GENERATION_CHECKPOINT_FILE_NAME_TEMPLATE)
     AUDIO_GENERATION_OUTPUT_FILE_PATH = os.path.join(ROOT_DIR, "data/output.wav")
 
     SERVER_PORT = 5000

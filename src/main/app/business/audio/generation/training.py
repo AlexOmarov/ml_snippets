@@ -21,9 +21,11 @@ from keras.optimizers import Adam
 
 from business.audio.generation.dto.training_dataset import TrainingDataset
 from business.audio.generation.dto.training_hyper_params_info import TrainingHyperParamsInfo
+from business.audio.generation.dto.training_paths_info import TrainingPathsInfo
 from business.audio.generation.dto.training_setting import TrainingSetting
 from business.audio.generation.dto.training_unit import TrainingUnit
 from presentation.api.train_result import TrainResult
+from src.main.resource.config import Config
 
 
 def train(setting: TrainingSetting) -> TrainResult:
@@ -66,13 +68,13 @@ def _convert_to_lite(model: Model, setting: TrainingSetting) -> str:
     return tflite_file_path
 
 
-def _get_training_units(setting: TrainingSetting) -> [TrainingUnit]:
-    return []
-
-
 def _get_dataset(units: [TrainingUnit]) -> TrainingDataset:
     dataset = _form_dataset(units)
     return _normalize_dataset(dataset)
+
+
+def _get_training_units(setting: TrainingSetting) -> [TrainingUnit]:
+    return []
 
 
 def _form_dataset(units: [TrainingUnit]) -> TrainingDataset:
@@ -85,7 +87,7 @@ def _normalize_dataset(dataset: TrainingDataset) -> TrainingDataset:
 
 def _get_model(hyper_params: TrainingHyperParamsInfo) -> tf.keras.models.Model:
     model = Model(inputs=[inputs, text_inputs], outputs=[decoder_output, postnet_output])
-    loss_fun = hyper_params.loss_fun  # MeanSquaredError()
+    loss_fun = hyper_params.loss_fun
     model.compile(optimizer=Adam(learning_rate=hyper_params.learning_rate), loss=[loss_fun, loss_fun])
     model.summary()
     return model
@@ -93,6 +95,25 @@ def _get_model(hyper_params: TrainingHyperParamsInfo) -> tf.keras.models.Model:
 
 train(
     TrainingSetting(
-
+        hyper_params_info=TrainingHyperParamsInfo(
+            batch_size=Config.AUDIO_GENERATION_BATCH_SIZE,
+            learning_rate=Config.AUDIO_GENERATION_LEARNING_RATE,
+            num_epochs=Config.AUDIO_GENERATION_NUM_EPOCHS,
+            loss_fun=Config.AUDIO_GENERATION_LOSS_FUN,
+            validation_split=Config.AUDIO_GENERATION_VALIDATION_SPLIT,
+            encoder_layers=Config.AUDIO_GENERATION_ENCODER_LAYERS,
+            decoder_layers=Config.AUDIO_GENERATION_DECODER_LAYERS,
+            post_kernel_size=Config.AUDIO_GENERATION_POST_KERNEL_SIZE
+        ),
+        paths_info=TrainingPathsInfo(
+            metadata_file_path=Config.METADATA_FILE_PATH,
+            phonemes_file_path=Config.PHONEMES_FILE_PATH,
+            audio_files_dir_path=Config.AUDIO_FILES_DIR_PATH,
+            checkpoint_path_template=Config.AUDIO_GENERATION_CHECKPOINT_FILE_PATH_TEMPLATE,
+            model_dir_path=Config.MODEL_DIR_PATH
+        ),
+        model_name=Config.AUDIO_GENERATION_MODEL_NAME,
+        num_mels=Config.AUDIO_GENERATION_NUM_MELS,
+        vocab_size=Config.AUDIO_GENERATION_VOCAB_SIZE
     )
 )

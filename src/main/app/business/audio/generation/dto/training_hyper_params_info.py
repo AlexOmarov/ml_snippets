@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Any
 
 
 @dataclass
@@ -6,11 +7,11 @@ class TrainingHyperParamsInfo:
     batch_size: int
     learning_rate: float
     num_epochs: int
-    loss_fun: int
+    loss_fun: Any
     validation_split: float
-    encoder_layers = int
-    decoder_layers = int
-    post_kernel_size = int
+    encoder_layers: int
+    decoder_layers: int
+    post_kernel_size: int
 
     def serialize(self):
         return {
