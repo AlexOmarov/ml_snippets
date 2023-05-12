@@ -51,4 +51,4 @@ def train(metric: str) -> TrainResult:
 
     :exception NotImplementedError If passed metric isn't supported.
     """
-    return TrainResult(metric=metric, data=[""])
+    return TrainResult(metric=metric, data=[""], path="", tflite_path="")

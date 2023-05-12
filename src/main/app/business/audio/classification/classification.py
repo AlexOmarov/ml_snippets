@@ -52,4 +52,4 @@ def train(metric: str) -> TrainResult:
     :exception NotImplementedError If passed metric isn't supported.
     """
     # TODO: Train model
-    return TrainResult(metric=metric, data=[""])
+    return TrainResult(path=metric, data=[""])

@@ -17,12 +17,15 @@ class Config(object):
     PHONEMES_FILE_PATH = os.path.join(ROOT_DIR, "data/phonemes.txt")
 
     AUDIO_CONVERSION_OUTPUT_EXT = "wav"
+
     WORDS_FILE_ENCODING = "utf-8"
+    WORDS_REGEX = r"\b\w+\b"
     RECOGNIZE_LANGUAGE = "ru-RU"
     PHONEMIZE_LANGUAGE = "ru"
     PHONEMIZE_BACKEND = "espeak"  # Install ESPEAK NG as msi from github releases
 
     AUDIO_GENERATION_LEARNING_RATE = 0.001
+    AUDIO_GENERATION_CHECKPOINT_FILE_NAME_TEMPLATE = "model.{epoch:02d}.h5"
     AUDIO_GENERATION_SAMPLE_RATE = 22050
     AUDIO_GENERATION_BATCH_SIZE = 16
     AUDIO_GENERATION_NUM_EPOCHS = 50

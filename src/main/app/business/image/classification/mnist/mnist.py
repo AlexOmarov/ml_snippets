@@ -80,7 +80,7 @@ def train(metric: str) -> TrainResult:
 
     _convert_to_lite(probability_model)
 
-    return TrainResult(metric=metric, data=result)
+    return TrainResult(metric=metric, data=result, path="", tflite_path="")
 
 
 def _make_prediction(tensor: EagerTensor) -> str:
