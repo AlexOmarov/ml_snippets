@@ -27,6 +27,16 @@ from presentation.api.train_result import TrainResult
 
 
 def train(setting: TrainingSetting) -> TrainResult:
+    """
+    Prepares model for generating.
+    Creates model, writes model to disk and converts in to tensorflow lite
+
+    :param setting : The settings for training
+
+    :return TrainResult
+
+    :exception RuntimeError If undefined exception happens.
+    """
 
     normalized_dataset = _get_dataset(_get_training_units(setting))
 
@@ -37,7 +47,7 @@ def train(setting: TrainingSetting) -> TrainResult:
         y=[normalized_dataset.test_data, normalized_dataset.test_responses],
         batch_size=setting.hyper_params_info.batch_size,
         epochs=setting.hyper_params_info.num_epochs,
-        validation_split=0.2,
+        validation_split=setting.hyper_params_info.validation_split,
         callbacks=[ModelCheckpoint(filepath=setting.paths_info.checkpoint_path_template)]
     )
 

@@ -7,6 +7,7 @@ class TrainingHyperParamsInfo:
     learning_rate: float
     num_epochs: int
     loss_fun: int
+    validation_split: float
     encoder_layers = int
     decoder_layers = int
     post_kernel_size = int
@@ -16,6 +17,7 @@ class TrainingHyperParamsInfo:
             'name': 'TrainingHyperParamInfo',
             'batch_size': self.batch_size,
             'loss_fun': self.loss_fun,
+            'validation_split': self.validation_split,
             'learning_rate': self.learning_rate,
             'num_epochs': self.num_epochs,
             'encoder_layers': self.encoder_layers,
