@@ -15,9 +15,11 @@ Public interface:
 """
 import csv
 import re
+import sys
 
 import librosa
 import numpy as np
+import psutil
 import pymorphy2
 import tensorflow as tf
 from keras import Model
@@ -25,7 +27,6 @@ from keras.callbacks import ModelCheckpoint
 from keras.optimizers import Adam
 from numpy import ndarray
 from phonemizer import phonemize
-from phonemizer.phonemize import Backend
 from pymorphy2 import MorphAnalyzer
 
 from business.audio.generation.dto.training_dataset import TrainingDataset
@@ -33,8 +34,11 @@ from business.audio.generation.dto.training_hyper_params_info import TrainingHyp
 from business.audio.generation.dto.training_paths_info import TrainingPathsInfo
 from business.audio.generation.dto.training_setting import TrainingSetting
 from business.audio.generation.dto.training_unit import TrainingUnit
+from business.util.ml_logger import logger
 from presentation.api.train_result import TrainResult
 from src.main.resource.config import Config
+
+_log = logger.get_logger(__name__.replace('__', '\''))
 
 
 def train(setting: TrainingSetting) -> TrainResult:
@@ -85,12 +89,28 @@ def _get_dataset(units: [TrainingUnit]) -> TrainingDataset:
 def _get_training_units(setting: TrainingSetting) -> [TrainingUnit]:
     result: [TrainingUnit] = []
     morph = pymorphy2.MorphAnalyzer()
+    mem = psutil.virtual_memory().available // 1024
     with open(setting.paths_info.metadata_file_path, 'r', encoding='utf-8') as f:
         reader = csv.reader(f)
         next(reader, None)  # skip the headers
+        index = 0
         for row in reader:
-            result.append(_form_training_unit(row, setting, morph))
-            print("Formed training unit from " + row[1])
+            unit = _form_training_unit(row, setting, morph)
+            result.append(unit)
+            array_size_kib = sys.getsizeof(result) / 1024
+            unit_size_kib = sys.getsizeof(unit) / 1024
+            percentage = array_size_kib * 100 // mem
+            index = index + 1
+            _log.info(
+                "№ " + index.__str__() + "." +
+                "Formed training unit from " + row[1].__str__() + "." +
+                " Size of overall array: " + array_size_kib.__str__() + "KiB." +
+                " Unit size: " + unit_size_kib.__str__() + " KiB." +
+                " Memory size: " + mem.__str__() + " KiB." +
+                " Memory usage: " + percentage.__str__() + " %." +
+                " Unit " + unit.serialize().__str__()
+            )
+
     return result
 
 
