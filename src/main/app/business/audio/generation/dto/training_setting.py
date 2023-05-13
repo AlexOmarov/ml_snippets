@@ -11,6 +11,9 @@ class TrainingSetting:
     model_name: str
     num_mels: int
     vocab_size: int
+    frame_length: int
+    hop_length: int
+    phonemize_language: str
 
     def serialize(self):
         return {
@@ -18,5 +21,8 @@ class TrainingSetting:
             'hyper_params_info': self.hyper_params_info,
             'num_mels': self.num_mels,
             'vocab_size': self.vocab_size,
+            'frame_length': self.frame_length,
+            'hop_length': self.hop_length,
+            'phonemize_language': self.phonemize_language,
             'paths_info': self.paths_info
         }

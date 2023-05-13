@@ -13,11 +13,20 @@ Public interface:
 
     * train - trains model, transforms to tensorflow lite and saves on a drive
 """
+import csv
+import re
 
+import librosa
+import numpy as np
+import pymorphy2
 import tensorflow as tf
 from keras import Model
 from keras.callbacks import ModelCheckpoint
 from keras.optimizers import Adam
+from numpy import ndarray
+from phonemizer import phonemize
+from phonemizer.phonemize import Backend
+from pymorphy2 import MorphAnalyzer
 
 from business.audio.generation.dto.training_dataset import TrainingDataset
 from business.audio.generation.dto.training_hyper_params_info import TrainingHyperParamsInfo
@@ -74,12 +83,62 @@ def _get_dataset(units: [TrainingUnit]) -> TrainingDataset:
 
 
 def _get_training_units(setting: TrainingSetting) -> [TrainingUnit]:
+    result: [TrainingUnit] = []
+    morph = pymorphy2.MorphAnalyzer()
     with open(setting.paths_info.metadata_file_path, 'r', encoding='utf-8') as f:
-        data = [line.strip().split(',') for line in f]
+        reader = csv.reader(f)
+        next(reader, None)  # skip the headers
+        for row in reader:
+            result.append(_form_training_unit(row, setting, morph))
+            print("Formed training unit from " + row[1])
+    return result
 
-    audio_files_names, transcripts, processed_text = zip(*data)
-    audio_files_names = [setting.paths_info.audio_files_dir_path + s for s in audio_files_names]
-    return []
+
+def _form_training_unit(row: list[str], setting: TrainingSetting, morph: MorphAnalyzer) -> TrainingUnit:
+    sampling_rate = float(row[9])
+    duration = float(row[10])
+    audio_text = row[0]
+    file_path = setting.paths_info.audio_files_dir_path + row[7].removeprefix("audio_files")
+    audio = _get_audio(file_path, sampling_rate, duration)
+    mfcc_db = _get_mfcc_db(audio, sampling_rate, setting)
+    spectrogram = _get_spectrogram(audio, setting.frame_length, setting.hop_length)
+    phonemes = _phonemize_text(audio_text, morph, setting.phonemize_language)
+    return TrainingUnit(
+        audio_path=file_path,
+        text=row[0],
+        phonemes=phonemes,
+        sampling_rate=sampling_rate,
+        duration_seconds=duration,
+        mfcc_db=mfcc_db,
+        spectrogram=spectrogram
+    )
+
+
+def _get_audio(path: str, sampling_rate: float, duration: float) -> ndarray:
+    audio_data, sr = librosa.load(path, sr=sampling_rate, duration=duration, mono=True)
+
+    # Normalize the audio
+    audio_data /= max(abs(audio_data))
+
+    # Trim leading and trailing silence
+    audio_data, _ = librosa.effects.trim(audio_data)
+
+    # Resample the audio if necessary
+    if sr != sampling_rate:
+        audio_data = librosa.resample(audio_data, sr, sampling_rate)
+    return audio_data
+
+
+def _phonemize_text(text: str, morph: MorphAnalyzer, language: str) -> list[str]:
+    words = re.findall(Config.WORDS_REGEX, text)
+    all_phonemes = []
+
+    for word in words:
+        base_form = morph.parse(word)[0].normal_form
+        phonemes = phonemize(base_form, language=language)
+        all_phonemes.append(phonemes)
+
+    return all_phonemes
 
 
 def _form_dataset(units: [TrainingUnit]) -> TrainingDataset:
@@ -88,6 +147,20 @@ def _form_dataset(units: [TrainingUnit]) -> TrainingDataset:
 
 def _normalize_dataset(dataset: TrainingDataset) -> TrainingDataset:
     return dataset
+
+
+def _get_mfcc_db(audio_data: ndarray, sampling_rate: float, setting: TrainingSetting) -> ndarray:
+    mel_spec = librosa.feature.melspectrogram(y=audio_data, sr=sampling_rate, n_mels=setting.num_mels, fmin=125,
+                                              fmax=7600)
+    mel_spec_db = librosa.power_to_db(mel_spec, ref=np.max)
+
+    return mel_spec_db
+
+
+def _get_spectrogram(audio_data: ndarray, frame_length: int, hop_length: int):
+    ft = librosa.stft(audio_data, n_fft=frame_length, hop_length=hop_length)
+    magnitude = np.absolute(ft)
+    return magnitude
 
 
 def _get_model(hyper_params: TrainingHyperParamsInfo) -> tf.keras.models.Model:
@@ -119,6 +192,9 @@ train(
         ),
         model_name=Config.AUDIO_GENERATION_MODEL_NAME,
         num_mels=Config.AUDIO_GENERATION_NUM_MELS,
+        frame_length=Config.AUDIO_GENERATION_FRAME_LENGTH,
+        hop_length=Config.AUDIO_GENERATION_HOP_LENGTH,
+        phonemize_language=Config.PHONEMIZE_LANGUAGE,
         vocab_size=Config.AUDIO_GENERATION_VOCAB_SIZE
     )
 )
