@@ -14,12 +14,13 @@ Public interface:
     * train - trains model, transforms to tensorflow lite and saves on a drive
 """
 import csv
+import os
+import pickle
 import re
 import sys
 
 import librosa
 import numpy as np
-import psutil
 import pymorphy2
 import tensorflow as tf
 from keras import Model
@@ -53,7 +54,7 @@ def train(setting: TrainingSetting) -> TrainResult:
     :exception RuntimeError If undefined exception happens.
     """
 
-    normalized_dataset = _get_dataset(_get_training_units(setting))
+    normalized_dataset = _get_dataset(_form_training_units(setting))
 
     model = _get_model(setting.hyper_params_info)
 
@@ -86,32 +87,74 @@ def _get_dataset(units: [TrainingUnit]) -> TrainingDataset:
     return _normalize_dataset(dataset)
 
 
-def _get_training_units(setting: TrainingSetting) -> [TrainingUnit]:
-    result: [TrainingUnit] = []
+def _form_training_units(setting: TrainingSetting) -> list[str]:
+    result = []
     morph = pymorphy2.MorphAnalyzer()
-    mem = psutil.virtual_memory().available // 1024
+    # Get overall_processed_unit_amount (batch size should be same between calls)
+    serialized_files = os.listdir(setting.paths_info.serialized_units_dir_path)
+    last_serialized_file_number = len(serialized_files)
+    overall_processed_unit_amount = last_serialized_file_number * setting.hyper_params_info.batch_size
+
     with open(setting.paths_info.metadata_file_path, 'r', encoding='utf-8') as f:
         reader = csv.reader(f)
-        next(reader, None)  # skip the headers
-        index = 0
-        for row in reader:
-            unit = _form_training_unit(row, setting, morph)
-            result.append(unit)
-            array_size_kib = sys.getsizeof(result) / 1024
-            unit_size_kib = sys.getsizeof(unit) / 1024
-            percentage = array_size_kib * 100 // mem
-            index = index + 1
-            _log.info(
-                "№ " + index.__str__() + "." +
-                "Formed training unit from " + row[1].__str__() + "." +
-                " Size of overall array: " + array_size_kib.__str__() + "KiB." +
-                " Unit size: " + unit_size_kib.__str__() + " KiB." +
-                " Memory size: " + mem.__str__() + " KiB." +
-                " Memory usage: " + percentage.__str__() + " %." +
-                " Unit " + unit.serialize().__str__()
-            )
+        _skip_processed_records(overall_processed_unit_amount, reader)
+        new_batch = _form_batch_of_units(reader, setting, morph, overall_processed_unit_amount)
+        while len(new_batch) == setting.hyper_params_info.batch_size:
+            # Save current batch
+            last_serialized_file_number = last_serialized_file_number + 1
+            _log.info("Formed next batch with number " + last_serialized_file_number.__str__())
+            file_path = _serialize_batch(new_batch, setting.paths_info.serialized_units_dir_path, last_serialized_file_number)
+            overall_processed_unit_amount = overall_processed_unit_amount + len(new_batch)
 
+            # Create new batch
+            new_batch = _form_batch_of_units(reader, setting, morph, overall_processed_unit_amount)
+            result.append(file_path)
+            _log.info("Serialized batch " + last_serialized_file_number.__str__() + " to " + file_path)
+
+        _log.info("Got last batch with size " + len(new_batch).__str__())
     return result
+
+
+def _serialize_batch(batch: [TrainingUnit], serialized_dir_path: str, last_serialized_file_number: int) -> str:
+    path = serialized_dir_path + '/serialized_batch_' + last_serialized_file_number.__str__() + '.pkl'
+    with open(path, 'ab') as f:
+        pickle.dump(batch, f)
+    return path
+
+
+def _form_batch_of_units(reader, setting: TrainingSetting, morph, overall_processed_unit_amount: int) -> [TrainingUnit]:
+    result = []
+    processed_unit_amount = 0
+    while processed_unit_amount < setting.hyper_params_info.batch_size:
+        row = _next_row(reader)
+        if len(row) == 0:
+            _log.info("No more records in csv file, return result array of " + len(result).__str__() + " size")
+            return result
+
+        unit = _form_training_unit(row, setting, morph)
+        _log.info("Got unit with size " + sys.getsizeof(unit).__str__())
+        result.append(unit)
+        processed_unit_amount = processed_unit_amount + 1
+        _log.info(
+            "№ " + (overall_processed_unit_amount+ processed_unit_amount).__str__() + "." +
+            "Formed training unit from " + row[1].__str__() + "." +
+            " Unit " + unit.serialize().__str__()
+        )
+    return result
+
+
+def _next_row(reader) -> list[str]:
+    try:
+        return next(reader)
+    except StopIteration:
+        return []
+
+
+def _skip_processed_records(processed_unit_amount, reader):
+    next(reader, None)  # skip the headers
+    if processed_unit_amount > 0:
+        for _ in range(processed_unit_amount - 1):
+            next(reader)
 
 
 def _form_training_unit(row: list[str], setting: TrainingSetting, morph: MorphAnalyzer) -> TrainingUnit:
@@ -177,10 +220,8 @@ def _get_mfcc_db(audio_data: ndarray, sampling_rate: float, setting: TrainingSet
     return mel_spec_db
 
 
-def _get_spectrogram(audio_data: ndarray, frame_length: int, hop_length: int):
-    ft = librosa.stft(audio_data, n_fft=frame_length, hop_length=hop_length)
-    magnitude = np.absolute(ft)
-    return magnitude
+def _get_spectrogram(audio_data: ndarray, frame_length: int, hop_length: int) -> ndarray:
+    return librosa.stft(audio_data, n_fft=frame_length, hop_length=hop_length)
 
 
 def _get_model(hyper_params: TrainingHyperParamsInfo) -> tf.keras.models.Model:
@@ -208,6 +249,7 @@ train(
             phonemes_file_path=Config.PHONEMES_FILE_PATH,
             audio_files_dir_path=Config.AUDIO_FILES_DIR_PATH,
             checkpoint_path_template=Config.AUDIO_GENERATION_CHECKPOINT_FILE_PATH_TEMPLATE,
+            serialized_units_dir_path=Config.AUDIO_GENERATION_PICKLED_UNITS_DIR_PATH,
             model_dir_path=Config.MODEL_DIR_PATH
         ),
         model_name=Config.AUDIO_GENERATION_MODEL_NAME,

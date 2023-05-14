@@ -14,7 +14,7 @@ class TrainingUnit:
     sampling_rate: float
     duration_seconds: float
     mfcc_db: ndarray
-    spectrogram: int
+    spectrogram: ndarray
 
     def serialize(self):
         return {
