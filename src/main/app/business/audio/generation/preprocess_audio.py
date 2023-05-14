@@ -1,94 +1,38 @@
-"""
-Training of neural network for speech generation
-
-This script allows user to train model based on audio files and it's metadata to generate speech.
-Speech can be of various languages and voices
-
-This script accepts training params setting as a parameter.
-
-This script requires that all the requirements from the <OS>_requirements.txt are installed in python env.
-
-This file can also be imported as a module.
-Public interface:
-
-    * train - trains model, transforms to tensorflow lite and saves on a drive
-"""
 import csv
 import os
 import pickle
 import re
-import sys
 
 import librosa
 import numpy as np
 import pymorphy2
-import tensorflow as tf
-from keras import Model
-from keras.callbacks import ModelCheckpoint
-from keras.optimizers import Adam
 from numpy import ndarray
 from phonemizer import phonemize
 from pymorphy2 import MorphAnalyzer
 
-from business.audio.generation.dto.training_dataset import TrainingDataset
 from business.audio.generation.dto.training_hyper_params_info import TrainingHyperParamsInfo
 from business.audio.generation.dto.training_paths_info import TrainingPathsInfo
 from business.audio.generation.dto.training_setting import TrainingSetting
 from business.audio.generation.dto.training_unit import TrainingUnit
 from business.util.ml_logger import logger
-from presentation.api.train_result import TrainResult
+from presentation.api.preprocess_result import PreprocessResult
 from src.main.resource.config import Config
 
 _log = logger.get_logger(__name__.replace('__', '\''))
 
 
-def train(setting: TrainingSetting) -> TrainResult:
+def preprocess_audio(setting: TrainingSetting) -> PreprocessResult:
     """
-    Prepares model for generating.
-    Creates model, writes model to disk and converts in to tensorflow lite
+    Prepares dataset based on .wav files, metafile .csv and config.
 
-    :param setting : The settings for training
+    :param setting : The settings for preprocessing
 
     :return TrainResult
 
     :exception RuntimeError If undefined exception happens.
     """
 
-    normalized_dataset = _get_dataset(_form_training_units(setting))
-
-    model = _get_model(setting.hyper_params_info)
-
-    model.fit(
-        x=[normalized_dataset.training_data, normalized_dataset.training_responses],
-        y=[normalized_dataset.test_data, normalized_dataset.test_responses],
-        batch_size=setting.hyper_params_info.batch_size,
-        epochs=setting.hyper_params_info.num_epochs,
-        validation_split=setting.hyper_params_info.validation_split,
-        callbacks=[ModelCheckpoint(filepath=setting.paths_info.checkpoint_path_template)]
-    )
-
-    path = model.save(setting.paths_info.model_dir_path)
-    tflite_path = _convert_to_lite(model, setting)
-
-    return TrainResult(metric="", path=path, tflite_path=tflite_path, data=[])
-
-
-def _convert_to_lite(model: Model, setting: TrainingSetting) -> str:
-    converter = tf.lite.TFLiteConverter.from_keras_model(model)
-    tflite_model = converter.convert()
-    tflite_file_path = setting.paths_info.model_dir_path + "/" + setting.model_name + ".tflite"
-    with open(tflite_file_path, 'wb') as f:
-        f.write(tflite_model)
-    return tflite_file_path
-
-
-def _get_dataset(units: [TrainingUnit]) -> TrainingDataset:
-    dataset = _form_dataset(units)
-    return _normalize_dataset(dataset)
-
-
-def _form_training_units(setting: TrainingSetting) -> list[str]:
-    result = []
+    paths = []
     morph = pymorphy2.MorphAnalyzer()
     # Get overall_processed_unit_amount (batch size should be same between calls)
     serialized_files = os.listdir(setting.paths_info.serialized_units_dir_path)
@@ -103,23 +47,24 @@ def _form_training_units(setting: TrainingSetting) -> list[str]:
             # Save current batch
             last_serialized_file_number = last_serialized_file_number + 1
             _log.info("Formed next batch with number " + last_serialized_file_number.__str__())
-            file_path = _serialize_batch(new_batch, setting.paths_info.serialized_units_dir_path, last_serialized_file_number)
+            file_path = _serialize_batch(new_batch, setting.paths_info.serialized_units_dir_path,
+                                         last_serialized_file_number)
             overall_processed_unit_amount = overall_processed_unit_amount + len(new_batch)
+            paths.append(file_path)
+            _log.info("Serialized batch " + last_serialized_file_number.__str__() + " to " + file_path)
 
             # Create new batch
             new_batch = _form_batch_of_units(reader, setting, morph, overall_processed_unit_amount)
-            result.append(file_path)
-            _log.info("Serialized batch " + last_serialized_file_number.__str__() + " to " + file_path)
 
         _log.info("Got last batch with size " + len(new_batch).__str__())
-    return result
+    return PreprocessResult(paths=paths)
 
 
-def _serialize_batch(batch: [TrainingUnit], serialized_dir_path: str, last_serialized_file_number: int) -> str:
-    path = serialized_dir_path + '/serialized_batch_' + last_serialized_file_number.__str__() + '.pkl'
-    with open(path, 'ab') as f:
-        pickle.dump(batch, f)
-    return path
+def _skip_processed_records(processed_unit_amount, reader):
+    next(reader, None)  # skip the headers
+    if processed_unit_amount > 0:
+        for _ in range(processed_unit_amount - 1):
+            next(reader)
 
 
 def _form_batch_of_units(reader, setting: TrainingSetting, morph, overall_processed_unit_amount: int) -> [TrainingUnit]:
@@ -132,15 +77,22 @@ def _form_batch_of_units(reader, setting: TrainingSetting, morph, overall_proces
             return result
 
         unit = _form_training_unit(row, setting, morph)
-        _log.info("Got unit with size " + sys.getsizeof(unit).__str__())
         result.append(unit)
         processed_unit_amount = processed_unit_amount + 1
         _log.info(
-            "№ " + (overall_processed_unit_amount+ processed_unit_amount).__str__() + "." +
+            "№ " + (overall_processed_unit_amount + processed_unit_amount).__str__() + "." +
             "Formed training unit from " + row[1].__str__() + "." +
             " Unit " + unit.serialize().__str__()
         )
     return result
+
+
+def _serialize_batch(batch: [TrainingUnit], serialized_dir_path: str, last_serialized_file_number: int) -> str:
+    path = serialized_dir_path + '/serialized_batch_' + last_serialized_file_number.__str__() + '.pkl'
+    with open(path, 'ab') as f:
+        pickle.dump(batch, f)
+        f.close()
+    return path
 
 
 def _next_row(reader) -> list[str]:
@@ -148,13 +100,6 @@ def _next_row(reader) -> list[str]:
         return next(reader)
     except StopIteration:
         return []
-
-
-def _skip_processed_records(processed_unit_amount, reader):
-    next(reader, None)  # skip the headers
-    if processed_unit_amount > 0:
-        for _ in range(processed_unit_amount - 1):
-            next(reader)
 
 
 def _form_training_unit(row: list[str], setting: TrainingSetting, morph: MorphAnalyzer) -> TrainingUnit:
@@ -192,26 +137,6 @@ def _get_audio(path: str, sampling_rate: float, duration: float) -> ndarray:
     return audio_data
 
 
-def _phonemize_text(text: str, morph: MorphAnalyzer, language: str) -> list[str]:
-    words = re.findall(Config.WORDS_REGEX, text)
-    all_phonemes = []
-
-    for word in words:
-        base_form = morph.parse(word)[0].normal_form
-        phonemes = phonemize(base_form, language=language)
-        all_phonemes.append(phonemes)
-
-    return all_phonemes
-
-
-def _form_dataset(units: [TrainingUnit]) -> TrainingDataset:
-    return TrainingDataset()
-
-
-def _normalize_dataset(dataset: TrainingDataset) -> TrainingDataset:
-    return dataset
-
-
 def _get_mfcc_db(audio_data: ndarray, sampling_rate: float, setting: TrainingSetting) -> ndarray:
     mel_spec = librosa.feature.melspectrogram(y=audio_data, sr=sampling_rate, n_mels=setting.num_mels, fmin=125,
                                               fmax=7600)
@@ -224,15 +149,19 @@ def _get_spectrogram(audio_data: ndarray, frame_length: int, hop_length: int) ->
     return librosa.stft(audio_data, n_fft=frame_length, hop_length=hop_length)
 
 
-def _get_model(hyper_params: TrainingHyperParamsInfo) -> tf.keras.models.Model:
-    model = Model(inputs=[inputs, text_inputs], outputs=[decoder_output, postnet_output])
-    loss_fun = hyper_params.loss_fun
-    model.compile(optimizer=Adam(learning_rate=hyper_params.learning_rate), loss=[loss_fun, loss_fun])
-    model.summary()
-    return model
+def _phonemize_text(text: str, morph: MorphAnalyzer, language: str) -> list[str]:
+    words = re.findall(Config.WORDS_REGEX, text)
+    all_phonemes = []
+
+    for word in words:
+        base_form = morph.parse(word)[0].normal_form
+        phonemes = phonemize(base_form, language=language)
+        all_phonemes.append(phonemes)
+
+    return all_phonemes
 
 
-train(
+preprocess_audio(
     TrainingSetting(
         hyper_params_info=TrainingHyperParamsInfo(
             batch_size=Config.AUDIO_GENERATION_BATCH_SIZE,
