@@ -4,9 +4,8 @@ import pickle
 
 import pymorphy2
 
-from business.audio.generation.config.training_setting import ts
-from business.audio.generation.dto.training_setting import TrainingSetting
 from business.audio.generation.dto.audio_entry import AudioEntry
+from business.audio.generation.dto.training_setting import TrainingSetting
 from business.audio.generation.speaker_verification.audio_entry_former import form_audio_entry
 from business.util.ml_logger import logger
 from presentation.api.preprocess_result import PreprocessResult
@@ -83,6 +82,3 @@ def _next_row(reader) -> list[str]:
         return next(reader)
     except StopIteration:
         return []
-
-
-preprocess_audio(ts)
