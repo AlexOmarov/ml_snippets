@@ -2,13 +2,13 @@ import re
 
 import librosa
 import numpy as np
-from numpy import ndarray, hstack
+from numpy import ndarray
 from phonemizer import phonemize
 from pymorphy2 import MorphAnalyzer
 
-from business.audio.generation.dto.training_setting import TrainingSetting
 from business.audio.generation.dto.audio_entry import AudioEntry
 from business.audio.generation.dto.audio_entry_metadata import AudioEntryMetadata
+from business.audio.generation.dto.training_setting import TrainingSetting
 from business.util.ml_logger import logger
 from src.main.resource.config import Config
 
@@ -45,7 +45,8 @@ def form_audio_entry(serialized_metadata: list[str], setting: TrainingSetting, m
 
 
 def _get_identification_vector(audio, metadata, setting, mfcc_db) -> ndarray:
-    return []
+    # TODO: create vector
+    return np.array([0, 0, 0, 0, 1])
 
 
 def _get_feature_vector(audio, metadata, setting, mel_spectrogram) -> ndarray:
@@ -56,18 +57,22 @@ def _get_feature_vector(audio, metadata, setting, mel_spectrogram) -> ndarray:
     mfccs = librosa.feature.mfcc(y=audio, sr=metadata.sampling_rate)
     delta_mfccs = librosa.feature.delta(mfccs)
     delta2_mfccs = librosa.feature.delta(mfccs, order=2)
-    feature_vector = hstack(
-        (
-            spectral_contrast.flatten(),
-            mel_spectrogram.flatten(),
-            tonnetz.flatten(),
-            chromagram.flatten(),
-            mfccs.flatten(),
-            delta_mfccs.flatten(),
-            delta2_mfccs.flatten()
-        )
-    )
-    return feature_vector
+    result = []
+    for entry in spectral_contrast:
+        result.append(np.mean(entry))
+    for entry in mel_spectrogram:
+        result.append(np.mean(entry))
+    for entry in tonnetz:
+        result.append(np.mean(entry))
+    for entry in chromagram:
+        result.append(np.mean(entry))
+    for entry in mfccs:
+        result.append(np.mean(entry))
+    for entry in delta_mfccs:
+        result.append(np.mean(entry))
+    for entry in delta2_mfccs:
+        result.append(np.mean(entry))
+    return np.array(result)
 
 
 def _get_mel_spectrogram(audio_data: ndarray, sampling_rate: float, setting: TrainingSetting) -> ndarray:

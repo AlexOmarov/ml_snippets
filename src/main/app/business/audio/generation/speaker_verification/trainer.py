@@ -2,11 +2,11 @@ import os
 import pickle
 
 import tensorflow as tf
-from keras.models import Model
+from keras import layers
 from keras.optimizers import Adam
 
-from business.audio.generation.dto.training_setting import TrainingSetting
 from business.audio.generation.dto.audio_entry import AudioEntry
+from business.audio.generation.dto.training_setting import TrainingSetting
 from business.util.ml_logger import logger
 from src.main.resource.config import Config
 
@@ -34,8 +34,15 @@ def train(setting: TrainingSetting):
 
 
 def _get_speaker_encoder(setting: TrainingSetting) -> tf.keras.models.Model:
-    # TODO: get speaker model
-    model = Model(inputs=[mfcc_input, phoneme_input], outputs=output)
+    input_shape = (6 + 7 + setting.num_mels + 12 + 20 + 20 + 20, 1)
+    # Input layer
+    inputs = layers.Input(shape=input_shape)
+
+    # TODO create model
+
+    # Output layer
+    outputs = layers.GlobalAveragePooling1D()(inputs)
+    model = tf.keras.Model(inputs=inputs, outputs=outputs)
     loss_fun = setting.hyper_params_info.loss_fun  # MeanSquaredError()
     model.compile(optimizer=Adam(learning_rate=setting.hyper_params_info.learning_rate), loss=[loss_fun, loss_fun])
     model.summary()
