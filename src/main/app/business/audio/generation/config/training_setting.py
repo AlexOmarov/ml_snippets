@@ -20,6 +20,7 @@ ts = TrainingSetting(
         audio_files_dir_path=Config.AUDIO_FILES_DIR_PATH,
         checkpoint_path_template=Config.AUDIO_GENERATION_CHECKPOINT_FILE_PATH_TEMPLATE,
         serialized_units_dir_path=Config.AUDIO_GENERATION_PICKLED_UNITS_DIR_PATH,
+        speaker_file_path=Config.SPEAKER_FILE_PATH,
         model_dir_path=Config.MODEL_DIR_PATH
     ),
     model_name=Config.AUDIO_GENERATION_MODEL_NAME,

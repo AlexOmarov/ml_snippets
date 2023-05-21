@@ -16,6 +16,7 @@ class Config(object):
     AUDIO_FILES_DIR_PATH = "D:/audio_dataset/audio_files"
     AUDIO_CONVERSION_INPUT_DIR_PATH = os.path.join(ROOT_DIR, "data/ogg/")
     METADATA_FILE_PATH = "D:/audio_dataset/df.csv"
+    SPEAKER_FILE_PATH = "D:/audio_dataset/speakers.csv"
     PHONEMES_FILE_PATH = os.path.join(ROOT_DIR, "data/phonemes.txt")
 
     AUDIO_CONVERSION_OUTPUT_EXT = "wav"

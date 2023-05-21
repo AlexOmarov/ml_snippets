@@ -15,14 +15,16 @@ from src.main.resource.config import Config
 _log = logger.get_logger(__name__.replace('__', '\''))
 
 
-def form_audio_entry(serialized_metadata: list[str], setting: TrainingSetting, morph: MorphAnalyzer) -> AudioEntry:
+def form_audio_entry(serialized_metadata: list[str], setting: TrainingSetting, morph: MorphAnalyzer,
+                     speakers: ndarray) -> AudioEntry:
     # Form metadata from serialized row
+    speaker_id = _get_speaker_id(serialized_metadata)
     metadata = AudioEntryMetadata(
         audio_path=_get_file_path(setting, serialized_metadata),
         text=_get_text(serialized_metadata),
         sampling_rate=_get_sampling_rate(serialized_metadata),
         duration_seconds=_get_duration(serialized_metadata),
-        speaker_id=_get_speaker_id(serialized_metadata),
+        speaker_id=speaker_id,
     )
 
     # Load and normalize audio from file
@@ -38,15 +40,16 @@ def form_audio_entry(serialized_metadata: list[str], setting: TrainingSetting, m
     return AudioEntry(
         metadata=metadata,
         feature_vector=feature_vector,
-        speaker_identification_vector=_get_identification_vector(audio, metadata, setting, mel_spectrogram),
+        speaker_identification_vector=_get_identification_vector(speaker_id, speakers),
         mel_spectrogram_result=mel_spectrogram,
         phonemes=phonemes,
     )
 
 
-def _get_identification_vector(audio, metadata, setting, mfcc_db) -> ndarray:
-    # TODO: create vector
-    return np.array([0, 0, 0, 0, 1])
+def _get_identification_vector(speaker_id: str, speakers: ndarray) -> ndarray:
+    result = np.zeros_like(speakers, dtype=int)
+    result[speakers == speaker_id] = 1
+    return result
 
 
 def _get_feature_vector(audio, metadata, setting, mel_spectrogram) -> ndarray:
