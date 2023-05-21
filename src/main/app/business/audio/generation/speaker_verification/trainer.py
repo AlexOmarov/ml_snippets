@@ -5,9 +5,8 @@ import tensorflow as tf
 from keras.models import Model
 from keras.optimizers import Adam
 
-from business.audio.generation.config.training_setting import ts
 from business.audio.generation.dto.training_setting import TrainingSetting
-from business.audio.generation.dto.training_unit import TrainingUnit
+from business.audio.generation.dto.audio_entry import AudioEntry
 from business.util.ml_logger import logger
 from src.main.resource.config import Config
 
@@ -49,12 +48,8 @@ def _get_dataset_generator(setting: TrainingSetting):
     while batches_amount >= batch_number:
         filename = f"/serialized_batch_{batch_number}.pkl"
         with open(setting.paths_info.serialized_units_dir_path + filename, 'rb') as file:
-            units: [TrainingUnit] = pickle.load(file)
-        batch_mfcc = [unit.mfcc_db for unit in units]
-        batch_phonemes = [unit.phonemes for unit in units]
-        batch_spectrogram = [unit.spectrogram for unit in units]
-        yield [batch_mfcc, batch_phonemes], batch_spectrogram  # TODO: Change it to speaker input and output
+            units: [AudioEntry] = pickle.load(file)
+        batch_features = [unit.feature_vector for unit in units]
+        batch_identification_vectors = [unit.speaker_identification_vector for unit in units]
+        yield batch_features, batch_identification_vectors
         batch_number += 1
-
-
-train(ts)

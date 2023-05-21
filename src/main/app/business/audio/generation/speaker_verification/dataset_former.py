@@ -6,8 +6,8 @@ import pymorphy2
 
 from business.audio.generation.config.training_setting import ts
 from business.audio.generation.dto.training_setting import TrainingSetting
-from business.audio.generation.dto.training_unit import TrainingUnit
-from business.audio.generation.speaker_verification.training_unit_former import form_training_unit
+from business.audio.generation.dto.audio_entry import AudioEntry
+from business.audio.generation.speaker_verification.audio_entry_former import form_audio_entry
 from business.util.ml_logger import logger
 from presentation.api.preprocess_result import PreprocessResult
 
@@ -50,7 +50,7 @@ def _skip_processed_records(processed_unit_amount, reader):
             next(reader)
 
 
-def _form_batch_of_units(reader, setting: TrainingSetting, morph, overall_processed_unit_amount: int) -> [TrainingUnit]:
+def _form_batch_of_units(reader, setting: TrainingSetting, morph, overall_processed_unit_amount: int) -> [AudioEntry]:
     result = []
     processed_unit_amount = 0
     while processed_unit_amount < setting.hyper_params_info.batch_size:
@@ -59,7 +59,7 @@ def _form_batch_of_units(reader, setting: TrainingSetting, morph, overall_proces
             _log.info("No more records in csv file, return result array of " + len(result).__str__() + " size")
             return result
 
-        unit = form_training_unit(row, setting, morph)
+        unit = form_audio_entry(row, setting, morph)
         result.append(unit)
         processed_unit_amount = processed_unit_amount + 1
         _log.info(
@@ -70,7 +70,7 @@ def _form_batch_of_units(reader, setting: TrainingSetting, morph, overall_proces
     return result
 
 
-def _serialize_batch(batch: [TrainingUnit], serialized_dir_path: str, last_serialized_file_number: int) -> str:
+def _serialize_batch(batch: [AudioEntry], serialized_dir_path: str, last_serialized_file_number: int) -> str:
     path = serialized_dir_path + '/serialized_batch_' + last_serialized_file_number.__str__() + '.pkl'
     with open(path, 'ab') as f:
         pickle.dump(batch, f)

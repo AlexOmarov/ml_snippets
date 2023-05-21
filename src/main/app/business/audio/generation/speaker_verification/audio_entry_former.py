@@ -2,22 +2,22 @@ import re
 
 import librosa
 import numpy as np
-from numpy import ndarray
+from numpy import ndarray, hstack
 from phonemizer import phonemize
 from pymorphy2 import MorphAnalyzer
 
 from business.audio.generation.dto.training_setting import TrainingSetting
-from business.audio.generation.dto.training_unit import TrainingUnit
-from business.audio.generation.dto.training_unit_metadata import TrainingUnitMetadata
+from business.audio.generation.dto.audio_entry import AudioEntry
+from business.audio.generation.dto.audio_entry_metadata import AudioEntryMetadata
 from business.util.ml_logger import logger
 from src.main.resource.config import Config
 
 _log = logger.get_logger(__name__.replace('__', '\''))
 
 
-def form_training_unit(serialized_metadata: list[str], setting: TrainingSetting, morph: MorphAnalyzer) -> TrainingUnit:
+def form_audio_entry(serialized_metadata: list[str], setting: TrainingSetting, morph: MorphAnalyzer) -> AudioEntry:
     # Form metadata from serialized row
-    metadata = TrainingUnitMetadata(
+    metadata = AudioEntryMetadata(
         audio_path=_get_file_path(setting, serialized_metadata),
         text=_get_text(serialized_metadata),
         sampling_rate=_get_sampling_rate(serialized_metadata),
@@ -32,28 +32,46 @@ def form_training_unit(serialized_metadata: list[str], setting: TrainingSetting,
     phonemes = _phonemize_text(metadata.text, morph, setting.phonemize_language)
 
     # Get features of audio
-    # TODO
-    mfcc_db = _get_mfcc_db(audio, metadata.sampling_rate, setting)
-    spectrogram = _get_spectrogram(audio, setting.frame_length, setting.hop_length)
-    feature_vector = _get_feature_vector()
+    mel_spectrogram = _get_mel_spectrogram(audio, metadata.sampling_rate, setting)
+    feature_vector = _get_feature_vector(audio, metadata, setting, mel_spectrogram)
 
-    return TrainingUnit(
+    return AudioEntry(
         metadata=metadata,
         feature_vector=feature_vector,
-        speaker_identification_result=,
-        speech_generation_result=,
+        speaker_identification_vector=_get_identification_vector(audio, metadata, setting, mel_spectrogram),
+        mel_spectrogram_result=mel_spectrogram,
         phonemes=phonemes,
     )
 
 
-def _get_feature_vector() -> ndarray:
+def _get_identification_vector(audio, metadata, setting, mfcc_db) -> ndarray:
     return []
 
 
-def _get_mfcc_db(audio_data: ndarray, sampling_rate: float, setting: TrainingSetting) -> ndarray:
-    # TODO
-    mel_spec = librosa.feature.melspectrogram(y=audio_data, sr=sampling_rate, n_mels=setting.num_mels, fmin=125,
-                                              fmax=7600)
+def _get_feature_vector(audio, metadata, setting, mel_spectrogram) -> ndarray:
+    spectrogram = _get_spectrogram(audio, setting.frame_length, setting.hop_length)
+    spectral_contrast = librosa.feature.spectral_contrast(S=spectrogram, sr=metadata.sampling_rate)
+    chromagram = librosa.feature.chroma_cqt(y=audio, sr=metadata.sampling_rate)
+    tonnetz = librosa.feature.tonnetz(chroma=chromagram)
+    mfccs = librosa.feature.mfcc(y=audio, sr=metadata.sampling_rate)
+    delta_mfccs = librosa.feature.delta(mfccs)
+    delta2_mfccs = librosa.feature.delta(mfccs, order=2)
+    feature_vector = hstack(
+        (
+            spectral_contrast.flatten(),
+            mel_spectrogram.flatten(),
+            tonnetz.flatten(),
+            chromagram.flatten(),
+            mfccs.flatten(),
+            delta_mfccs.flatten(),
+            delta2_mfccs.flatten()
+        )
+    )
+    return feature_vector
+
+
+def _get_mel_spectrogram(audio_data: ndarray, sampling_rate: float, setting: TrainingSetting) -> ndarray:
+    mel_spec = librosa.feature.melspectrogram(y=audio_data, sr=sampling_rate, n_mels=setting.num_mels)
     mel_spec_db = librosa.power_to_db(mel_spec, ref=np.max)
 
     return mel_spec_db
@@ -95,7 +113,7 @@ def _get_audio(path: str, sampling_rate: float, duration: float) -> ndarray:
 
 
 def _get_spectrogram(audio_data: ndarray, frame_length: int, hop_length: int) -> ndarray:
-    return librosa.stft(audio_data, n_fft=frame_length, hop_length=hop_length)
+    return np.abs(librosa.stft(audio_data, n_fft=frame_length, hop_length=hop_length))
 
 
 def _phonemize_text(text: str, morph: MorphAnalyzer, language: str) -> list[str]:

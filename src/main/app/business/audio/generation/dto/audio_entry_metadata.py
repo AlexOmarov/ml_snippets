@@ -7,7 +7,7 @@ from business.audio.generation.dto.training_paths_info import TrainingPathsInfo
 
 
 @dataclass
-class TrainingUnitMetadata:
+class AudioEntryMetadata:
     audio_path: str
     text: str
     sampling_rate: float
@@ -16,7 +16,7 @@ class TrainingUnitMetadata:
 
     def serialize(self):
         return {
-            'name': 'TrainingUnit',
+            'name': 'AudioEntryMetadata',
             'audio_path': self.audio_path,
             'sampling_rate': self.sampling_rate,
             'duration_seconds': self.duration_seconds,
