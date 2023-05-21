@@ -12,6 +12,7 @@ class TrainingUnitMetadata:
     text: str
     sampling_rate: float
     duration_seconds: float
+    speaker_id: str
 
     def serialize(self):
         return {
@@ -19,5 +20,6 @@ class TrainingUnitMetadata:
             'audio_path': self.audio_path,
             'sampling_rate': self.sampling_rate,
             'duration_seconds': self.duration_seconds,
+            'speaker_id': self.speaker_id,
             'text': self.text
         }

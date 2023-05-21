@@ -22,19 +22,20 @@ def form_training_unit(serialized_metadata: list[str], setting: TrainingSetting,
         text=_get_text(serialized_metadata),
         sampling_rate=_get_sampling_rate(serialized_metadata),
         duration_seconds=_get_duration(serialized_metadata),
+        speaker_id=_get_speaker_id(serialized_metadata),
     )
 
     # Load and normalize audio from file
     audio = _get_audio(metadata.audio_path, metadata.sampling_rate, metadata.duration_seconds)
+
+    # Get phonemes for text
+    phonemes = _phonemize_text(metadata.text, morph, setting.phonemize_language)
 
     # Get features of audio
     # TODO
     mfcc_db = _get_mfcc_db(audio, metadata.sampling_rate, setting)
     spectrogram = _get_spectrogram(audio, setting.frame_length, setting.hop_length)
     feature_vector = _get_feature_vector()
-
-    # Get phonemes for text
-    phonemes = _phonemize_text(metadata.text, morph, setting.phonemize_language)
 
     return TrainingUnit(
         metadata=metadata,
@@ -46,8 +47,20 @@ def form_training_unit(serialized_metadata: list[str], setting: TrainingSetting,
 
 
 def _get_feature_vector() -> ndarray:
-    # TODO
     return []
+
+
+def _get_mfcc_db(audio_data: ndarray, sampling_rate: float, setting: TrainingSetting) -> ndarray:
+    # TODO
+    mel_spec = librosa.feature.melspectrogram(y=audio_data, sr=sampling_rate, n_mels=setting.num_mels, fmin=125,
+                                              fmax=7600)
+    mel_spec_db = librosa.power_to_db(mel_spec, ref=np.max)
+
+    return mel_spec_db
+
+
+def _get_speaker_id(serialized_metadata: list[str]) -> str:
+    return serialized_metadata[2]
 
 
 def _get_file_path(setting: TrainingSetting, serialized_metadata: list[str]) -> str:
@@ -79,15 +92,6 @@ def _get_audio(path: str, sampling_rate: float, duration: float) -> ndarray:
     if sr != sampling_rate:
         audio_data = librosa.resample(audio_data, sr, sampling_rate)
     return audio_data
-
-
-def _get_mfcc_db(audio_data: ndarray, sampling_rate: float, setting: TrainingSetting) -> ndarray:
-    # TODO
-    mel_spec = librosa.feature.melspectrogram(y=audio_data, sr=sampling_rate, n_mels=setting.num_mels, fmin=125,
-                                              fmax=7600)
-    mel_spec_db = librosa.power_to_db(mel_spec, ref=np.max)
-
-    return mel_spec_db
 
 
 def _get_spectrogram(audio_data: ndarray, frame_length: int, hop_length: int) -> ndarray:
