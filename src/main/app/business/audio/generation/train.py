@@ -8,7 +8,7 @@ from keras.optimizers import Adam
 
 from business.audio.generation.dto.training_setting import TrainingSetting
 from business.audio.generation.dto.training_unit import TrainingUnit
-from business.audio.generation.training_setting import ts
+from business.audio.generation.config.training_setting import ts
 from business.util.ml_logger import logger
 
 _log = logger.get_logger(__name__.replace('__', '\''))

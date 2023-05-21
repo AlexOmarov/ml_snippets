@@ -25,6 +25,15 @@ def generate(text: str,
     """
     Makes a generation based on passed audio.
 
+    :param vocab_size:
+    :param phonemes_file:
+    :param phonemize_backend:
+    :param phonemize_language:
+    :param audio_files_dir:
+    :param words_file:
+    :param model_path:
+    :param text:
+    :param num_mels:
     :param audio: Storage with audio data
     """
     model = load_model(model_path)
