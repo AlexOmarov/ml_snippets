@@ -5,6 +5,7 @@ import pickle
 import numpy as np
 import pymorphy2
 from numpy import ndarray
+from phonemizer.backend import EspeakBackend
 
 from business.audio.generation.dto.audio_entry import AudioEntry
 from business.audio.generation.dto.training_setting import TrainingSetting
@@ -18,6 +19,7 @@ _log = logger.get_logger(__name__.replace('__', '\''))
 def preprocess_audio(setting: TrainingSetting) -> PreprocessResult:
     paths = []
     morph = pymorphy2.MorphAnalyzer()
+    backend = EspeakBackend(setting.phonemize_language, preserve_punctuation=True)
     # Get overall_processed_unit_amount (batch size should be same between calls)
     serialized_files = os.listdir(setting.paths_info.serialized_units_dir_path)
     last_serialized_file_number = len(serialized_files)
@@ -26,7 +28,7 @@ def preprocess_audio(setting: TrainingSetting) -> PreprocessResult:
     with open(setting.paths_info.metadata_file_path, 'r', encoding='utf-8') as f:
         reader = csv.reader(f)
         _skip_processed_records(overall_processed_unit_amount, reader)
-        new_batch = _form_batch_of_units(reader, setting, morph, overall_processed_unit_amount, speakers)
+        new_batch = _form_batch_of_units(reader, setting, morph, overall_processed_unit_amount, speakers, backend)
         while len(new_batch) == setting.hyper_params_info.batch_size:
             # Save current batch
             last_serialized_file_number = last_serialized_file_number + 1
@@ -38,7 +40,7 @@ def preprocess_audio(setting: TrainingSetting) -> PreprocessResult:
             _log.info("Serialized batch " + last_serialized_file_number.__str__() + " to " + file_path)
 
             # Create new batch
-            new_batch = _form_batch_of_units(reader, setting, morph, overall_processed_unit_amount, speakers)
+            new_batch = _form_batch_of_units(reader, setting, morph, overall_processed_unit_amount, speakers, backend)
 
         _log.info("Got last batch with size " + len(new_batch).__str__())
     return PreprocessResult(paths=paths)
@@ -48,7 +50,6 @@ def _get_speakers(path: str) -> ndarray:
     speakers = []
     with open(path, 'r', encoding='utf-8') as f:
         reader = csv.reader(f)
-        next(reader, None)
         row = _next_row(reader)
         while row:
             speakers.append(row[0])
@@ -64,7 +65,8 @@ def _skip_processed_records(processed_unit_amount, reader):
 
 
 def _form_batch_of_units(reader, setting: TrainingSetting, morph, overall_processed_unit_amount: int,
-                         speakers: ndarray) -> [AudioEntry]:
+                         speakers: ndarray,
+                         backend: EspeakBackend) -> [AudioEntry]:
     result = []
     processed_unit_amount = 0
     while processed_unit_amount < setting.hyper_params_info.batch_size:
@@ -73,7 +75,7 @@ def _form_batch_of_units(reader, setting: TrainingSetting, morph, overall_proces
             _log.info("No more records in csv file, return result array of " + len(result).__str__() + " size")
             return result
 
-        unit = form_audio_entry(row, setting, morph, speakers)
+        unit = form_audio_entry(row, setting, morph, speakers, backend)
         result.append(unit)
         processed_unit_amount = processed_unit_amount + 1
         _log.info(

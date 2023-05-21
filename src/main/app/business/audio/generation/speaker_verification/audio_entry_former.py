@@ -3,7 +3,7 @@ import re
 import librosa
 import numpy as np
 from numpy import ndarray
-from phonemizer import phonemize
+from phonemizer.backend import EspeakBackend
 from pymorphy2 import MorphAnalyzer
 
 from business.audio.generation.dto.audio_entry import AudioEntry
@@ -16,7 +16,8 @@ _log = logger.get_logger(__name__.replace('__', '\''))
 
 
 def form_audio_entry(serialized_metadata: list[str], setting: TrainingSetting, morph: MorphAnalyzer,
-                     speakers: ndarray) -> AudioEntry:
+                     speakers: ndarray,
+                     backend: EspeakBackend) -> AudioEntry:
     # Form metadata from serialized row
     speaker_id = _get_speaker_id(serialized_metadata)
     metadata = AudioEntryMetadata(
@@ -31,7 +32,7 @@ def form_audio_entry(serialized_metadata: list[str], setting: TrainingSetting, m
     audio = _get_audio(metadata.audio_path, metadata.sampling_rate, metadata.duration_seconds)
 
     # Get phonemes for text
-    phonemes = _phonemize_text(metadata.text, morph, setting.phonemize_language)
+    phonemes = _phonemize_text(metadata.text, morph, backend)
 
     # Get features of audio
     mel_spectrogram = _get_mel_spectrogram(audio, metadata.sampling_rate, setting)
@@ -124,13 +125,12 @@ def _get_spectrogram(audio_data: ndarray, frame_length: int, hop_length: int) ->
     return np.abs(librosa.stft(audio_data, n_fft=frame_length, hop_length=hop_length))
 
 
-def _phonemize_text(text: str, morph: MorphAnalyzer, language: str) -> list[str]:
+def _phonemize_text(text: str, morph: MorphAnalyzer, backend: EspeakBackend) -> list[str]:
     words = re.findall(Config.WORDS_REGEX, text)
-    all_phonemes = []
+    base_form_words = []
 
     for word in words:
         base_form = morph.parse(word)[0].normal_form
-        phonemes = phonemize(base_form, language=language)
-        all_phonemes.append(phonemes)
-
-    return all_phonemes
+        base_form_words.append(base_form)
+    phonemes = backend.phonemize(base_form_words)
+    return phonemes
