@@ -11,7 +11,7 @@ class Config(object):
     DEBUG = False
     ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-    MODEL_DIR_PATH = "data/models/"
+    MODEL_DIR_PATH = os.path.join(ROOT_DIR, "data/models/")
     AUDIO_MODEL_PATH = os.path.join(ROOT_DIR, "data/models/audio_model.h5")
     AUDIO_FILES_DIR_PATH = "D:/audio_dataset/audio_files"
     AUDIO_CONVERSION_INPUT_DIR_PATH = os.path.join(ROOT_DIR, "data/ogg/")
@@ -32,6 +32,7 @@ class Config(object):
     AUDIO_GENERATION_SAMPLE_RATE = 22050
     AUDIO_GENERATION_BATCH_SIZE = 64
     AUDIO_GENERATION_NUM_EPOCHS = 50
+    AUDIO_GENERATION_STEPS_PER_EPOCH = 40
     AUDIO_GENERATION_ENCODER_LAYERS = 3
     AUDIO_GENERATION_DECODER_LAYERS = 3
     AUDIO_GENERATION_POST_KERNEL_SIZE = 4

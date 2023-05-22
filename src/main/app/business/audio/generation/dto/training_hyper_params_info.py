@@ -7,6 +7,7 @@ class TrainingHyperParamsInfo:
     batch_size: int
     learning_rate: float
     num_epochs: int
+    steps_per_epoch: int
     loss_fun: Any
     validation_split: float
     encoder_layers: int
@@ -17,6 +18,7 @@ class TrainingHyperParamsInfo:
         return {
             'name': 'TrainingHyperParamInfo',
             'batch_size': self.batch_size,
+            'steps_per_epoch': self.steps_per_epoch,
             'loss_fun': self.loss_fun,
             'validation_split': self.validation_split,
             'learning_rate': self.learning_rate,

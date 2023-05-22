@@ -12,7 +12,8 @@ ts = TrainingSetting(
         validation_split=Config.AUDIO_GENERATION_VALIDATION_SPLIT,
         encoder_layers=Config.AUDIO_GENERATION_ENCODER_LAYERS,
         decoder_layers=Config.AUDIO_GENERATION_DECODER_LAYERS,
-        post_kernel_size=Config.AUDIO_GENERATION_POST_KERNEL_SIZE
+        post_kernel_size=Config.AUDIO_GENERATION_POST_KERNEL_SIZE,
+        steps_per_epoch=Config.AUDIO_GENERATION_STEPS_PER_EPOCH
     ),
     paths_info=TrainingPathsInfo(
         metadata_file_path=Config.METADATA_FILE_PATH,
