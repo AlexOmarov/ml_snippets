@@ -48,6 +48,7 @@ class Config(object):
                                                                   AUDIO_GENERATION_CHECKPOINT_FILE_NAME_TEMPLATE)
     AUDIO_GENERATION_OUTPUT_FILE_PATH = os.path.join(ROOT_DIR, "data/output.wav")
     AUDIO_GENERATION_PICKLED_UNITS_DIR_PATH = "F:/pickles"
+    AUDIO_GENERATION_TEST_PICKLED_UNITS_DIR_PATH = "F:/test_pickles"
 
     SERVER_PORT = 5000
     CSRF_ENABLED = True

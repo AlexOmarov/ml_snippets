@@ -95,11 +95,11 @@ def _get_file_path(setting: TrainingSetting, serialized_metadata: list[str]) -> 
 
 
 def _get_sampling_rate(serialized_metadata: list[str]) -> float:
-    return float(serialized_metadata[9])
+    return float(serialized_metadata[10])
 
 
 def _get_duration(serialized_metadata: list[str]) -> float:
-    return float(serialized_metadata[10])
+    return float(serialized_metadata[8])
 
 
 def _get_text(serialized_metadata: list[str]) -> str:
