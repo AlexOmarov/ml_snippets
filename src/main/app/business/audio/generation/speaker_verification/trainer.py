@@ -1,13 +1,9 @@
-import csv
-import os
 import pickle
 
 import numpy as np
 import tensorflow as tf
-from keras import layers, Model, Sequential
-from numpy import ndarray
+from keras import layers, Model
 
-from business.audio.generation.config.training_setting import ts
 from business.audio.generation.dto.audio_entry import AudioEntry
 from business.audio.generation.dto.training_setting import TrainingSetting
 from business.util.ml_logger import logger
@@ -17,10 +13,10 @@ _log = logger.get_logger(__name__.replace('__', '\''))
 
 
 def train(setting: TrainingSetting):
-    model = _get_speaker_encoder(setting)
-    generator = _get_dataset_generator(setting)
+    model = _get_speaker_encoder()
+    init_batch = [4]
     model.fit(
-        x=generator,
+        x=_get_dataset_generator(setting, init_batch),
         steps_per_epoch=42,
         epochs=setting.hyper_params_info.num_epochs,
         shuffle=True
@@ -57,75 +53,24 @@ def _get_test_data(setting) -> tuple:
     return result_features, result_identifications
 
 
-def _get_speaker_encoder(setting: TrainingSetting) -> tf.keras.models.Model:
-    input_shape = (6 + 7 + setting.num_mels + 12 + 20 + 20 + 20,)
-    speakers = _get_speakers(setting.paths_info.speaker_file_path)
+def _get_speaker_encoder() -> tf.keras.models.Model:
+    input_shape = (149,)
     inputs = layers.Input(shape=input_shape)
-
-    # Input embedding
     x = layers.Dense(128)(inputs)
-
-    # Transformer encoder
-    # Transformer encoder
-    for _ in range(4):
-        # Multi-head attention
-        attention = layers.MultiHeadAttention(num_heads=4, key_dim=128)
-        x = attention(x, x)
-        x = layers.LayerNormalization(epsilon=1e-6)(x)
-
-        # Feed-forward network
-        ffn = Sequential([
-            layers.Dense(256, activation="relu"),
-            layers.Dense(128),
-        ])
-        x = ffn(x)
-        x = layers.LayerNormalization(epsilon=1e-6)(x)
-
-    # Embedding layer
-    x = layers.Dense(20 * 7)(x)
-    x = layers.Reshape((20, 7))(x)
-
-    # Output layer
-    outputs = layers.Dense(66, activation="softmax", axis=-1)(x)
-
-    # Create the model
+    outputs = layers.Dense(66, activation="softmax")(x)
     model = Model(inputs=inputs, outputs=outputs)
-    model.compile(optimizer="adam", loss="sparse_categorical_crossentropy", metrics=["accuracy"])
+    loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+    model.compile(optimizer="adam", loss=loss_fn, metrics=["accuracy"])
     model.summary()
     return model
 
 
-def _get_speakers(path: str) -> ndarray:
-    speakers = []
-    with open(path, 'r', encoding='utf-8') as f:
-        reader = csv.reader(f)
-        row = _next_row(reader)
-        while row:
-            speakers.append(row[0])
-            row = _next_row(reader)
-    return np.array(speakers)
-
-
-def _next_row(reader) -> list[str]:
-    try:
-        return next(reader)
-    except StopIteration:
-        return []
-
-
-def _get_dataset_generator(setting: TrainingSetting):
-    batch_number = 4
-    batches_amount = len(os.listdir(setting.paths_info.serialized_units_dir_path))
+def _get_dataset_generator(setting: TrainingSetting, init_batch: list):
     while True:
-        if batches_amount >= batch_number:
-            batch_number = 4
-        filename = f"/serialized_batch_{batch_number}.pkl"
+        filename = f"/serialized_batch_{init_batch[0]}.pkl"
         with open(setting.paths_info.serialized_units_dir_path + filename, 'rb') as file:
             units: [AudioEntry] = pickle.load(file)
         batch_features = [unit.feature_vector for unit in units]
         batch_identification_vectors = [unit.speaker_identification_vector for unit in units]
+        init_batch[0] = init_batch[0] + 1
         yield np.array(batch_features), np.array(batch_identification_vectors)
-        batch_number += 1
-
-
-train(ts)
