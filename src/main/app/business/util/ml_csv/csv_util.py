@@ -37,3 +37,11 @@ def read(file_path: str, skip_headers: bool) -> list[list[str]]:
             row = next_row(reader)
 
     return result
+
+
+def skip_processed_records(processed, reader, skip_headers: bool):
+    if skip_headers:
+        next(reader, None)
+    if processed > 0:
+        for _ in range(processed - 1):
+            next(reader)

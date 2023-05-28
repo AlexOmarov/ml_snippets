@@ -23,8 +23,6 @@ class Config(object):
 
     WORDS_FILE_ENCODING = "utf-8"
     WORDS_REGEX = r"\b\w+\b"
-    RECOGNIZE_LANGUAGE = "ru-RU"
-    PHONEMIZE_LANGUAGE = "ru"
     PHONEMIZE_BACKEND = "espeak"  # Install ESPEAK NG as msi from github releases
 
     AUDIO_GENERATION_LEARNING_RATE = 0.001
