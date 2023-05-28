@@ -21,6 +21,6 @@ def _normalize(audio_data, sr: int, required_sample_rate: float) -> ndarray:
 
     # Resample the audio if necessary
     if sr != required_sample_rate:
-        audio_data = librosa.resample(audio_data, sr, required_sample_rate)
+        audio_data = librosa.resample(audio_data, orig_sr=sr, target_sr=required_sample_rate)
 
     return audio_data
