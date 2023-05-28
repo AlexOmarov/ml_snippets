@@ -8,9 +8,9 @@ from numpy import ndarray
 from phonemizer.backend import EspeakBackend
 from pymorphy2 import MorphAnalyzer
 
-from business.audio.generation.train.train import TrainingSetting
-from business.audio.generation.train.train import form_audio_entry
-from business.audio.generation.train.train import AudioEntry
+from business.audio.generation.train.config.dto.training_setting import TrainingSetting
+from business.audio.generation.train.dataset.audio_entry_former import form_audio_entry
+from business.audio.generation.train.dataset.dto.audio_entry import AudioEntry
 from business.util.ml_csv.csv_util import next_row, read, skip_processed_records
 from business.util.ml_logger import logger
 
