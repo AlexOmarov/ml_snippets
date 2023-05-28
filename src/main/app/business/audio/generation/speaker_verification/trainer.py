@@ -1,3 +1,4 @@
+import os
 import pickle
 
 import numpy as np
@@ -13,8 +14,8 @@ _log = logger.get_logger(__name__.replace('__', '\''))
 
 
 def train(setting: TrainingSetting):
-    model = _get_speaker_encoder()
-    init_batch = [4]
+    model = _get_speaker_encoder(setting)
+    init_batch = [1]
     model.fit(
         x=_get_dataset_generator(setting, init_batch),
         steps_per_epoch=42,
@@ -22,7 +23,7 @@ def train(setting: TrainingSetting):
         shuffle=True
     )
     (x_test, y_test) = _get_test_data(setting)
-    loss, accuracy = model.evaluate(x_test, y_test)
+    loss, accuracy = model.evaluate(np.reshape(x_test[0], (1, -1)), np.reshape(y_test[0], (1, -1)))
     print("Test Loss:", loss)
     print("Test Accuracy:", accuracy)
     tf.keras.utils.plot_model(model, to_file=Config.MODEL_DIR_PATH + "speaker_verification_plot.png", show_shapes=True)
@@ -39,35 +40,32 @@ def train(setting: TrainingSetting):
 
 
 def _get_test_data(setting) -> tuple:
-    result_features = []
-    result_identifications = []
-    for batch_number in range(3):
-        filename = f"/serialized_batch_{batch_number + 1}.pkl"
-        with open(setting.paths_info.serialized_units_dir_path + filename, 'rb') as file:
-            units: [AudioEntry] = pickle.load(file)
-        batch_features = [unit.feature_vector for unit in units]
-        batch_identification_vectors = [unit.speaker_identification_vector for unit in units]
-        result_features.append(batch_features)
-        result_identifications.append(batch_identification_vectors)
-        batch_number += 1
-    return result_features, result_identifications
+    filename = "/serialized_batch_1.pkl"
+    with open(setting.paths_info.serialized_units_dir_path + filename, 'rb') as file:
+        units: [AudioEntry] = pickle.load(file)
+    batch_features = [unit.feature_vector for unit in units]
+    batch_identification_vectors = [unit.speaker_identification_vector for unit in units]
+    return batch_features, batch_identification_vectors
 
 
-def _get_speaker_encoder() -> tf.keras.models.Model:
+def _get_speaker_encoder(setting: TrainingSetting) -> tf.keras.models.Model:
     input_shape = (149,)
     inputs = layers.Input(shape=input_shape)
     x = layers.Dense(128)(inputs)
-    outputs = layers.Dense(66, activation="softmax")(x)
+    outputs = layers.Dense(66)(x)
     model = Model(inputs=inputs, outputs=outputs)
-    loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
-    model.compile(optimizer="adam", loss=loss_fn, metrics=["accuracy"])
+    model.compile(optimizer="adam", loss=setting.hyper_params_info.loss_fun, metrics=["accuracy"])
     model.summary()
     return model
 
 
 def _get_dataset_generator(setting: TrainingSetting, init_batch: list):
+    batches_amount = len(os.listdir(setting.paths_info.serialized_units_dir_path))
     while True:
+        if batches_amount <= init_batch[0]:
+            init_batch[0] = 4
         filename = f"/serialized_batch_{init_batch[0]}.pkl"
+        # _log.info("Getting batch from " + filename)
         with open(setting.paths_info.serialized_units_dir_path + filename, 'rb') as file:
             units: [AudioEntry] = pickle.load(file)
         batch_features = [unit.feature_vector for unit in units]
