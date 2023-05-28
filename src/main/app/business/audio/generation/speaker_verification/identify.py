@@ -14,6 +14,7 @@ def identify(setting: TrainingSetting):
     with open(setting.paths_info.serialized_units_dir_path + filename, 'rb') as file:
         units: [AudioEntry] = pickle.load(file)
         result = model.predict(units[0].feature_vector[None, :])
+        print(result)
         print(np.where(result[0] == 1)[0])
         print(np.where(units[0].speaker_identification_vector == 1)[0])
 

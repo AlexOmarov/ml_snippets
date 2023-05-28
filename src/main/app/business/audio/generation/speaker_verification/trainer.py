@@ -14,7 +14,7 @@ _log = logger.get_logger(__name__.replace('__', '\''))
 
 
 def train(setting: TrainingSetting):
-    model = _get_speaker_encoder(setting)
+    model = _get_speaker_encoder()
     init_batch = [1]
     model.fit(
         x=_get_dataset_generator(setting, init_batch),
@@ -23,7 +23,7 @@ def train(setting: TrainingSetting):
         shuffle=True
     )
     (x_test, y_test) = _get_test_data(setting)
-    loss, accuracy = model.evaluate(np.reshape(x_test[0], (1, -1)), np.reshape(y_test[0], (1, -1)))
+    loss, accuracy = model.evaluate(x_test, y_test)
     print("Test Loss:", loss)
     print("Test Accuracy:", accuracy)
     tf.keras.utils.plot_model(model, to_file=Config.MODEL_DIR_PATH + "speaker_verification_plot.png", show_shapes=True)
@@ -45,16 +45,16 @@ def _get_test_data(setting) -> tuple:
         units: [AudioEntry] = pickle.load(file)
     batch_features = [unit.feature_vector for unit in units]
     batch_identification_vectors = [unit.speaker_identification_vector for unit in units]
-    return batch_features, batch_identification_vectors
+    return np.array(batch_features), np.array(batch_identification_vectors)
 
 
-def _get_speaker_encoder(setting: TrainingSetting) -> tf.keras.models.Model:
+def _get_speaker_encoder() -> tf.keras.models.Model:
     input_shape = (149,)
     inputs = layers.Input(shape=input_shape)
     x = layers.Dense(128)(inputs)
-    outputs = layers.Dense(66)(x)
+    outputs = layers.Dense(66, activation="softmax")(x)
     model = Model(inputs=inputs, outputs=outputs)
-    model.compile(optimizer="adam", loss=setting.hyper_params_info.loss_fun, metrics=["accuracy"])
+    model.compile(optimizer="adam", loss='categorical_crossentropy', metrics=["accuracy"])
     model.summary()
     return model
 
@@ -65,7 +65,6 @@ def _get_dataset_generator(setting: TrainingSetting, init_batch: list):
         if batches_amount <= init_batch[0]:
             init_batch[0] = 4
         filename = f"/serialized_batch_{init_batch[0]}.pkl"
-        # _log.info("Getting batch from " + filename)
         with open(setting.paths_info.serialized_units_dir_path + filename, 'rb') as file:
             units: [AudioEntry] = pickle.load(file)
         batch_features = [unit.feature_vector for unit in units]
