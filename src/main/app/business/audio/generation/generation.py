@@ -15,6 +15,5 @@ def generate(audio: FileStorage,
              backend: EspeakBackend) -> AudioGenerationResult:
     audio, sr = retrieve_via_storage(audio, Config.AG_SAMPLE_RATE)
     phonemes = get_phonemes(request.text, "", morph, backend)
-    feature_vector = get_feature_vector(audio, Config.AG_FRAME_LENGTH, Config.AG_HOP_LENGTH, sr,
-                                        num_mels=Config.AG_NUM_MELS)
+    feature_vector = get_feature_vector(audio, sr, Config.AG_FRAME_LENGTH, Config.AG_HOP_LENGTH, Config.AG_NUM_MELS)
     return AudioGenerationResult("")

@@ -26,8 +26,8 @@ class Config(object):
     AG_SAMPLE_RATE = 16000
     AG_BATCH_SIZE = 64
     AG_NUM_EPOCHS = 50
-    AG_STEPS_PER_EPOCH = 40
-    AG_NUM_MELS = 64  # number of mel spectrogram bins
+    AG_STEPS_PER_EPOCH = 35
+    AG_NUM_MELS = 64
     AG_VOCAB_SIZE = 50
     AG_HOP_LENGTH = 512
     AG_FRAME_LENGTH = 2048

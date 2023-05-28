@@ -18,5 +18,5 @@ def identify(model_dir_path: str, serialized_units_dir_path: str, filename: str)
     print("Got: " + max_index.__str__() + ", valid: " + np.where(units[0].speaker_identification_vector == 1)[0])
 
 
-# form_dataset(ts)
+form_dataset(ts)
 create_model(ts)
