@@ -30,10 +30,10 @@ def form_audio_entry(serialized_metadata: list[str],
     )
 
     # Load and normalize audio from file
-    audio, sr = retrieve_via_path(metadata.audio_path)
+    audio, sr = retrieve_via_path(metadata.audio_path, metadata.sampling_rate)
 
     # Get phonemes for text
-    phonemes = get_phonemes(metadata.text, "", morph, backend)
+    phonemes = get_phonemes(metadata.text, setting.words_regex, morph, backend)
 
     # Get features of audio
     mel_spectrum = get_mel_spectrum_db(audio, metadata.sampling_rate, setting.hyper_params_info.num_mels)

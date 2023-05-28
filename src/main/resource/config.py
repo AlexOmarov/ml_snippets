@@ -34,12 +34,13 @@ class Config(object):
 
     AG_WORDS_REGEX = r"\b\w+\b"
     AG_MODEL_NAME = "RUSSIAN_TTS_MODEL"
+    AG_MODEL_LANG = "ru"
     AG_CHECKPOINT_FILE_NAME_TEMPLATE = "model.{epoch:02d}.h5"
     AG_CHECKPOINT_DIR_PATH = os.path.join(ROOT_DIR, "data/checkpoints/")
     AG_CHECKPOINT_FILE_PATH_TEMPLATE = os.path.join(AG_CHECKPOINT_DIR_PATH, AG_CHECKPOINT_FILE_NAME_TEMPLATE)
     AG_OUTPUT_FILE_PATH = os.path.join(ROOT_DIR, "data/output.wav")
-    AG_PICKLED_UNITS_DIR_PATH = "F:/pickles"
-    AG_TEST_PICKLED_UNITS_DIR_PATH = "F:/test_pickles"
+    AG_SERIALIZED_UNITS_DIR_PATH = "F:/pickles"
+    AG_TEST_SERIALIZED_UNITS_DIR_PATH = "F:/test_pickles"
     AG = os.path.join(MODELS_DIR_PATH, "audio_model.h5")
     AG_AUDIO_DIR_PATH = "D:/audio_dataset/audio_files"
     AG_INPUT_DIR_PATH = os.path.join(ROOT_DIR, "data/ogg/")

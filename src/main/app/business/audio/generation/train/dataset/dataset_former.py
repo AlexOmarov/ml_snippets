@@ -17,7 +17,7 @@ from business.util.ml_logger import logger
 _log = logger.get_logger(__name__.replace('__', '\''))
 
 
-def form(setting: TrainingSetting):
+def form_dataset(setting: TrainingSetting):
     paths = []
 
     morph = pymorphy2.MorphAnalyzer()
@@ -38,7 +38,8 @@ def form(setting: TrainingSetting):
             # Save current batch
             last_serialized_file_number = last_serialized_file_number + 1
             _log.info(
-                "№ " + overall_processed_unit_amount.__str__() + " - " + len(new_batch).__str__() +
+                "№ " + overall_processed_unit_amount.__str__() + " - " +
+                (overall_processed_unit_amount + len(new_batch)).__str__() +
                 ". Formed next batch with number " + last_serialized_file_number.__str__()
             )
             file_path = _serialize_batch(

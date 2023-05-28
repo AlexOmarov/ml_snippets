@@ -18,7 +18,7 @@ def get_phonemes(text: str, words_regex: str, morph: MorphAnalyzer, backend: Esp
     return phonemes
 
 
-def get_feature_vector(audio, frame_length: int, hop_length: int, sr: int, num_mels: int) -> ndarray:
+def get_feature_vector(audio, sr: float, frame_length: int, hop_length: int, num_mels: int) -> ndarray:
     mel_spectrum_db = get_mel_spectrum_db(audio, sr, num_mels)
     spectrum = _get_spectrum(audio, frame_length, hop_length)
     spectral_contrast = librosa.feature.spectral_contrast(S=spectrum, sr=sr)
