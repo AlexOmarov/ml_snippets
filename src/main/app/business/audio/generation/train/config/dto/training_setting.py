@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
-from business.audio.generation.train.config.dto.training_hyper_params_info import TrainingHyperParamsInfo
-from business.audio.generation.train.config.dto.training_paths_info import TrainingPathsInfo
+from business.audio.generation.train.train import TrainingHyperParamsInfo
+from business.audio.generation.train.train import TrainingPathsInfo
 
 
 @dataclass

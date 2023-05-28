@@ -3,7 +3,7 @@ import pickle
 
 import numpy as np
 
-from business.audio.generation.train.dataset.dto.audio_entry import AudioEntry
+from business.audio.generation.train.train import AudioEntry
 
 
 def get_dataset_generator(serialized_units_dir_path: str, init_batch: list):

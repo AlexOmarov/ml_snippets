@@ -1,3 +1,4 @@
+import numpy as np
 from phonemizer.backend import EspeakBackend
 from pymorphy2 import MorphAnalyzer
 from werkzeug.datastructures import FileStorage
@@ -12,8 +13,13 @@ from src.main.resource.config import Config
 def generate(audio: FileStorage,
              request: AudioGenerationRequest,
              morph: MorphAnalyzer,
-             backend: EspeakBackend) -> AudioGenerationResult:
+             backend: EspeakBackend,
+             model) -> AudioGenerationResult:
     audio, sr = retrieve_via_storage(audio, Config.AG_SAMPLE_RATE)
     phonemes = get_phonemes(request.text, "", morph, backend)
     feature_vector = get_feature_vector(audio, sr, Config.AG_FRAME_LENGTH, Config.AG_HOP_LENGTH, Config.AG_NUM_MELS)
+    result = model.predict(feature_vector[None, :])
+    max_index = np.argmax(result)
+    print(phonemes)
+    print("Got: " + max_index.__str__())
     return AudioGenerationResult("")

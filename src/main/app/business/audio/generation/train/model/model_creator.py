@@ -4,8 +4,8 @@ from keras.utils import plot_model
 from tensorflow.lite.python.convert import OpsSet
 from tensorflow.lite.python.lite import TFLiteConverter
 
-from business.audio.generation.train.config.dto.training_setting import TrainingSetting
-from business.audio.generation.train.dataset.dataset_generator import get_dataset_generator
+from business.audio.generation.train.train import TrainingSetting
+from business.audio.generation.train.train import get_dataset_generator
 from business.util.ml_logger import logger
 
 _log = logger.get_logger(__name__.replace('__', '\''))
