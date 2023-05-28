@@ -3,9 +3,9 @@ from numpy import ndarray
 from phonemizer.backend import EspeakBackend
 from pymorphy2 import MorphAnalyzer
 
-from business.audio.generation.config.dto.training_setting import TrainingSetting
-from business.audio.generation.dataset.dto.audio_entry import AudioEntry
-from business.audio.generation.dataset.dto.audio_entry_metadata import AudioEntryMetadata
+from business.audio.generation.train.config.dto.training_setting import TrainingSetting
+from business.audio.generation.train.dataset.dto.audio_entry import AudioEntry
+from business.audio.generation.train.dataset.dto.audio_entry_metadata import AudioEntryMetadata
 from business.audio.generation.preprocessing.audio_retrieval import retrieve_via_path
 from business.audio.generation.preprocessing.preprocessing import get_phonemes, get_mel_spectrum_db, get_feature_vector
 from business.util.ml_logger import logger

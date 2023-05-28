@@ -5,8 +5,8 @@ import numpy as np
 import tensorflow as tf
 from keras import layers, Model
 
-from business.audio.generation.dataset.dto.audio_entry import AudioEntry
-from business.audio.generation.config.dto.training_setting import TrainingSetting
+from business.audio.generation.train.dataset.dto.audio_entry import AudioEntry
+from business.audio.generation.train.config.dto.training_setting import TrainingSetting
 from business.util.ml_logger import logger
 from src.main.resource.config import Config
 
@@ -26,8 +26,8 @@ def train(setting: TrainingSetting):
     loss, accuracy = model.evaluate(x_test, y_test)
     print("Test Loss:", loss)
     print("Test Accuracy:", accuracy)
-    tf.keras.utils.plot_model(model, to_file=Config.MODEL_DIR_PATH + "speaker_verification_plot.png", show_shapes=True)
-    model.save(Config.MODEL_DIR_PATH + "speaker_verification")
+    tf.keras.utils.plot_model(model, to_file=Config.MODELS_DIR_PATH + "speaker_verification_plot.png", show_shapes=True)
+    model.save(Config.MODELS_DIR_PATH + "speaker_verification")
     converter = tf.lite.TFLiteConverter.from_keras_model(model)
     converter.target_spec.supported_ops = [
         tf.lite.OpsSet.TFLITE_BUILTINS,  # enable TensorFlow Lite ops.
@@ -35,7 +35,7 @@ def train(setting: TrainingSetting):
     ]
     tflite_model = converter.convert()
 
-    with open(Config.MODEL_DIR_PATH + "speaker_verification_tf_lite", 'wb') as f:
+    with open(Config.MODELS_DIR_PATH + "speaker_verification_tf_lite", 'wb') as f:
         f.write(tflite_model)
 
 

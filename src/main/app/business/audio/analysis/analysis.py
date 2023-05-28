@@ -83,7 +83,7 @@ def analyse(storage: FileStorage, frame_length: int, hop_length: int) -> AudioAn
 
 
 def _build_delta2_mfcc_plot(mfcc, sr, filename: str) -> str:
-    path = Config.MODEL_DIR_PATH + filename + '_delta2_mfcc.png'
+    path = Config.MODELS_DIR_PATH + filename + '_delta2_mfcc.png'
     plt.figure(figsize=(25, 10))
 
     plt.subplot(3, 1, 1)
@@ -97,7 +97,7 @@ def _build_delta2_mfcc_plot(mfcc, sr, filename: str) -> str:
 
 
 def _build_delta_mfcc_plot(mfcc, sr, filename: str) -> str:
-    path = Config.MODEL_DIR_PATH + filename + '_delta_mfcc.png'
+    path = Config.MODELS_DIR_PATH + filename + '_delta_mfcc.png'
     plt.figure(figsize=(25, 10))
 
     plt.subplot(3, 1, 1)
@@ -111,7 +111,7 @@ def _build_delta_mfcc_plot(mfcc, sr, filename: str) -> str:
 
 
 def _build_mfcc_plot(mfcc, sr, filename: str) -> str:
-    path = Config.MODEL_DIR_PATH + filename + '_mfcc.png'
+    path = Config.MODELS_DIR_PATH + filename + '_mfcc.png'
     plt.figure(figsize=(25, 10))
 
     plt.subplot(3, 1, 1)
@@ -125,7 +125,7 @@ def _build_mfcc_plot(mfcc, sr, filename: str) -> str:
 
 
 def _build_mel_spectrogram_plot(log_mel_spectrogram, sr, filename: str) -> str:
-    path = Config.MODEL_DIR_PATH + filename + '_mel_spectrogram.png'
+    path = Config.MODELS_DIR_PATH + filename + '_mel_spectrogram.png'
     plt.figure(figsize=(25, 10))
 
     plt.subplot(3, 1, 1)
@@ -139,7 +139,7 @@ def _build_mel_spectrogram_plot(log_mel_spectrogram, sr, filename: str) -> str:
 
 
 def _build_mel_banks_plot(filter_banks, sr, filename: str) -> str:
-    path = Config.MODEL_DIR_PATH + filename + '_mel_banks.png'
+    path = Config.MODELS_DIR_PATH + filename + '_mel_banks.png'
     plt.figure(figsize=(25, 10))
 
     plt.subplot(3, 1, 1)
@@ -153,7 +153,7 @@ def _build_mel_banks_plot(filter_banks, sr, filename: str) -> str:
 
 
 def _build_spectrogram_plot(magnitude, sr, filename: str, hop_length: int) -> str:
-    path = Config.MODEL_DIR_PATH + filename + '_spectrogram.png'
+    path = Config.MODELS_DIR_PATH + filename + '_spectrogram.png'
     plt.figure(figsize=(15, 17))
 
     plt.subplot(3, 1, 1)
@@ -169,7 +169,7 @@ def _build_spectrogram_plot(magnitude, sr, filename: str, hop_length: int) -> st
 
 
 def _build_freq_features_plot(frequency, magnitude, filename: str) -> str:
-    path = Config.MODEL_DIR_PATH + filename + '_freq_features.png'
+    path = Config.MODELS_DIR_PATH + filename + '_freq_features.png'
     plt.figure(figsize=(15, 17))
 
     plt.subplot(3, 1, 1)
@@ -183,7 +183,7 @@ def _build_freq_features_plot(frequency, magnitude, filename: str) -> str:
 
 
 def _build_time_features_plot(ae, zcr, rms, ber, sc, sb, audio, sr, filename: str, t) -> str:
-    path = Config.MODEL_DIR_PATH + filename + '_features.png'
+    path = Config.MODELS_DIR_PATH + filename + '_features.png'
     plt.figure(figsize=(15, 17))
 
     plt.subplot(4, 1, 1)

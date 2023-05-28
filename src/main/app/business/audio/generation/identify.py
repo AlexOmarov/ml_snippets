@@ -3,7 +3,7 @@ import pickle
 import numpy as np
 from keras.models import load_model
 
-from business.audio.generation.dataset.dto.audio_entry import AudioEntry
+from business.audio.generation.train.dataset.dto.audio_entry import AudioEntry
 
 
 def identify(model_dir_path: str, serialized_units_dir_path: str, filename: str):

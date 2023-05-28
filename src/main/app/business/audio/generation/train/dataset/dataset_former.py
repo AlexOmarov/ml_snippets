@@ -8,9 +8,9 @@ from numpy import ndarray
 from phonemizer.backend import EspeakBackend
 from pymorphy2 import MorphAnalyzer
 
-from business.audio.generation.config.dto.training_setting import TrainingSetting
-from business.audio.generation.dataset.audio_entry_former import form_audio_entry
-from business.audio.generation.dataset.dto.audio_entry import AudioEntry
+from business.audio.generation.train.config.dto.training_setting import TrainingSetting
+from business.audio.generation.train.dataset.audio_entry_former import form_audio_entry
+from business.audio.generation.train.dataset.dto.audio_entry import AudioEntry
 from business.util.ml_csv.csv_util import next_row, read, skip_processed_records
 from business.util.ml_logger import logger
 
@@ -21,7 +21,7 @@ def form(setting: TrainingSetting):
     paths = []
 
     morph = pymorphy2.MorphAnalyzer()
-    backend = EspeakBackend("ru", preserve_punctuation=True)
+    backend = EspeakBackend(setting.language, preserve_punctuation=True)
 
     # Get overall_processed_unit_amount (batch size should be same between calls)
     serialized_files = os.listdir(setting.paths_info.serialized_units_dir_path)

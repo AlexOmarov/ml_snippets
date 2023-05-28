@@ -1,6 +1,6 @@
-from business.audio.generation.config.dto.training_hyper_params_info import TrainingHyperParamsInfo
-from business.audio.generation.config.dto.training_paths_info import TrainingPathsInfo
-from business.audio.generation.config.dto.training_setting import TrainingSetting
+from business.audio.generation.train.config.dto.training_hyper_params_info import TrainingHyperParamsInfo
+from business.audio.generation.train.config.dto.training_paths_info import TrainingPathsInfo
+from business.audio.generation.train.config.dto.training_setting import TrainingSetting
 from src.main.resource.config import Config
 
 ts = TrainingSetting(

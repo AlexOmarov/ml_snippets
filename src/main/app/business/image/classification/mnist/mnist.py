@@ -117,15 +117,15 @@ def _convert_to_lite(model: keras.models.Sequential) -> None:
     converter = tf.lite.TFLiteConverter.from_keras_model(model)
     tflite_model = converter.convert()
 
-    with open(Config.MODEL_DIR_PATH + _MODEL_TFLITE_NAME, 'wb') as f:
+    with open(Config.MODELS_DIR_PATH + _MODEL_TFLITE_NAME, 'wb') as f:
         f.write(tflite_model)
 
 
 def _refresh_model_sources(model: keras.models.Sequential) -> None:
     global _global_model
 
-    keras.utils.plot_model(model, Config.MODEL_DIR_PATH + _MODEL_PLOT_NAME, show_shapes=True)
-    model.save(Config.MODEL_DIR_PATH + _MODEL_NAME)
+    keras.utils.plot_model(model, Config.MODELS_DIR_PATH + _MODEL_PLOT_NAME, show_shapes=True)
+    model.save(Config.MODELS_DIR_PATH + _MODEL_NAME)
     _global_model = model
 
 
