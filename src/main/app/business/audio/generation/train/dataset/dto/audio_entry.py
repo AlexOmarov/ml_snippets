@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from numpy import ndarray
 
-from business.audio.generation.train.train import AudioEntryMetadata
+from business.audio.generation.train.dataset.dto.audio_entry_metadata import AudioEntryMetadata
 
 
 @dataclass
