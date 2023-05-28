@@ -6,9 +6,10 @@ from numpy import ndarray
 from phonemizer.backend import EspeakBackend
 from pymorphy2 import MorphAnalyzer
 
-from business.audio.generation.dto.audio_entry import AudioEntry
-from business.audio.generation.dto.audio_entry_metadata import AudioEntryMetadata
-from business.audio.generation.dto.training_setting import TrainingSetting
+from business.audio.generation.dataset.dto.audio_entry import AudioEntry
+from business.audio.generation.dataset.dto.audio_entry_metadata import AudioEntryMetadata
+from business.audio.generation.config.dto.training_setting import TrainingSetting
+from business.audio.generation.preprocessing.preprocess import get_feature_vector
 from business.util.ml_logger import logger
 from src.main.resource.config import Config
 
@@ -36,7 +37,7 @@ def form_audio_entry(serialized_metadata: list[str], setting: TrainingSetting, m
 
     # Get features of audio
     mel_spectrogram = _get_mel_spectrogram(audio, metadata.sampling_rate, setting)
-    feature_vector = _get_feature_vector(audio, metadata, setting, mel_spectrogram)
+    feature_vector = get_feature_vector(audio, metadata, setting, mel_spectrogram)
 
     return AudioEntry(
         metadata=metadata,
@@ -51,32 +52,6 @@ def _get_identification_vector(speaker_id: str, speakers: ndarray) -> ndarray:
     result = np.zeros_like(speakers, dtype=int)
     result[speakers == speaker_id] = 1
     return result
-
-
-def _get_feature_vector(audio, metadata, setting, mel_spectrogram) -> ndarray:
-    spectrogram = _get_spectrogram(audio, setting.frame_length, setting.hop_length)
-    spectral_contrast = librosa.feature.spectral_contrast(S=spectrogram, sr=metadata.sampling_rate)
-    chromagram = librosa.feature.chroma_cqt(y=audio, sr=metadata.sampling_rate)
-    tonnetz = librosa.feature.tonnetz(chroma=chromagram)
-    mfccs = librosa.feature.mfcc(y=audio, sr=metadata.sampling_rate)
-    delta_mfccs = librosa.feature.delta(mfccs)
-    delta2_mfccs = librosa.feature.delta(mfccs, order=2)
-    result = []
-    for entry in spectral_contrast:
-        result.append(np.mean(entry))
-    for entry in mel_spectrogram:
-        result.append(np.mean(entry))
-    for entry in tonnetz:
-        result.append(np.mean(entry))
-    for entry in chromagram:
-        result.append(np.mean(entry))
-    for entry in mfccs:
-        result.append(np.mean(entry))
-    for entry in delta_mfccs:
-        result.append(np.mean(entry))
-    for entry in delta2_mfccs:
-        result.append(np.mean(entry))
-    return np.array(result)
 
 
 def _get_mel_spectrogram(audio_data: ndarray, sampling_rate: float, setting: TrainingSetting) -> ndarray:

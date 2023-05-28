@@ -2,10 +2,10 @@ from dataclasses import dataclass
 
 
 @dataclass
-class PreprocessResult:
-    paths: list[str]
+class AudioGenerationRequest:
+    text: str
 
     def serialize(self):
         return {
-            'paths': self.paths
+            'text': self.text
         }

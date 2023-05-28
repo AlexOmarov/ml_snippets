@@ -5,8 +5,8 @@ import numpy as np
 import tensorflow as tf
 from keras import layers, Model
 
-from business.audio.generation.dto.audio_entry import AudioEntry
-from business.audio.generation.dto.training_setting import TrainingSetting
+from business.audio.generation.dataset.dto.audio_entry import AudioEntry
+from business.audio.generation.config.dto.training_setting import TrainingSetting
 from business.util.ml_logger import logger
 from src.main.resource.config import Config
 

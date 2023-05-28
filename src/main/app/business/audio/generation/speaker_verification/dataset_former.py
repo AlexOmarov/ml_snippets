@@ -7,16 +7,15 @@ import pymorphy2
 from numpy import ndarray
 from phonemizer.backend import EspeakBackend
 
-from business.audio.generation.dto.audio_entry import AudioEntry
-from business.audio.generation.dto.training_setting import TrainingSetting
+from business.audio.generation.config.dto.training_setting import TrainingSetting
+from business.audio.generation.dataset.dto.audio_entry import AudioEntry
 from business.audio.generation.speaker_verification.audio_entry_former import form_audio_entry
 from business.util.ml_logger import logger
-from presentation.api.preprocess_result import PreprocessResult
 
 _log = logger.get_logger(__name__.replace('__', '\''))
 
 
-def preprocess_audio(setting: TrainingSetting) -> PreprocessResult:
+def preprocess_audio(setting: TrainingSetting):
     paths = []
     morph = pymorphy2.MorphAnalyzer()
     backend = EspeakBackend(setting.phonemize_language, preserve_punctuation=True)
@@ -43,7 +42,6 @@ def preprocess_audio(setting: TrainingSetting) -> PreprocessResult:
             new_batch = _form_batch_of_units(reader, setting, morph, overall_processed_unit_amount, speakers, backend)
 
         _log.info("Got last batch with size " + len(new_batch).__str__())
-    return PreprocessResult(paths=paths)
 
 
 def _get_speakers(path: str) -> ndarray:
@@ -55,6 +53,12 @@ def _get_speakers(path: str) -> ndarray:
             speakers.append(row[0])
             row = _next_row(reader)
     return np.array(speakers)
+
+
+def _get_speakers(metadata_file_path: str, speaker_file_path: str):
+    result = read(metadata_file_path, True)
+    distinct_values = list(dict.fromkeys(result))
+    write(distinct_values, speaker_file_path)
 
 
 def _skip_processed_records(processed_unit_amount, reader):

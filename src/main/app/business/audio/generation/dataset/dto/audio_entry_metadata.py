@@ -1,10 +1,5 @@
 from dataclasses import dataclass
 
-from numpy import ndarray
-
-from business.audio.generation.dto.training_hyper_params_info import TrainingHyperParamsInfo
-from business.audio.generation.dto.training_paths_info import TrainingPathsInfo
-
 
 @dataclass
 class AudioEntryMetadata:

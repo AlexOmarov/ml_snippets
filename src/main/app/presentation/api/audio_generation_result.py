@@ -3,9 +3,9 @@ from dataclasses import dataclass
 
 @dataclass
 class AudioGenerationResult:
-    data: str
+    file_path: str
 
     def serialize(self):
         return {
-            'data': self.data,
+            'file_path': self.file_path,
         }

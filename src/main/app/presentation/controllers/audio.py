@@ -4,6 +4,7 @@ from business.audio.analysis.analysis import analyse
 from business.audio.classification.classification import predict
 from business.audio.classification.readaudio import read
 from business.audio.generation.generation import generate
+from presentation.api.audio_generation_request import AudioGenerationRequest
 
 audio_blueprint = Blueprint('audio_blueprint', __name__)
 
@@ -24,7 +25,9 @@ def classify():
 
 @audio_blueprint.route('/audio/generate', methods=['POST'])
 def generate_audio():
-    return jsonify(result=generate(request.files.get('audio', '')).serialize())
+    return jsonify(
+        result=generate(request.files.get('audio', ''), AudioGenerationRequest(**request.get_json())).serialize()
+    )
 
 
 @audio_blueprint.route('/audio/read', methods=['POST'])
