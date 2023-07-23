@@ -28,6 +28,7 @@ def get_feature_vector(audio, sr: float, frame_length: int, hop_length: int, num
     delta_mfccs = librosa.feature.delta(mfccs)
     delta2_mfccs = librosa.feature.delta(mfccs, order=2)
     result = []
+
     _append(result, spectral_contrast)
     _append(result, mel_spectrum_db)
     _append(result, tonnetz)
@@ -35,6 +36,7 @@ def get_feature_vector(audio, sr: float, frame_length: int, hop_length: int, num
     _append(result, mfccs)
     _append(result, delta_mfccs)
     _append(result, delta2_mfccs)
+
     return np.array(result)
 
 
